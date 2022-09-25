@@ -1,0 +1,596 @@
+<!-- Questo file è un template che serve a Golang per creare il file di output in HTML -->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>MicroSCOPE Analysis</title>
+</head>
+<!-- Lo stile -->
+<style>
+    body{
+        font-family: "Open Sans", sans-serif;
+        padding:20px;
+    }
+
+    .container {
+        width: 80%;
+        max-width:900px;
+        margin: 0 auto;
+    }
+
+    table, td, tr {
+        border-collapse: collapse;
+    }
+
+    td, tr{
+        border: 1px solid #bbbbbb;
+    }
+
+    td{
+        padding:15px;
+    }
+
+    .score-box{
+        border:1px solid black;
+        padding: 10px;
+        margin: 10px 0;
+    }
+
+    .score-ok{
+        background: #ededed;
+    }
+
+    .score-red{
+        background: #d85252;
+    }
+
+    .score-box p{
+        padding:5px;
+    }
+
+    .score-box span{
+        font-weight: 800;
+        font-size:2rem;
+    }
+
+    .detail {
+        color: grey;
+    }
+
+    pre{
+        display: inline-block;
+        font-size: 1rem;
+    }
+</style>
+<body>
+<div class="container">
+    <h1>MicroSCOPE report</h1>
+    <p class="detail">This report has been generated at {{now}}.</p>
+    <div class="score-box {{ if ge .Score .Threshold }}score-red{{else}}score-ok{{end}}">
+        {{ if ge .Score .Threshold}}<p> File has been reported as <b>RANSOMWARE</b>.</p>{{ end }}
+        {{ $thresholds := divide .Threshold 2}}
+        {{ if and (ge .Score $thresholds) (le .Score .Threshold) }}<p>File has been reported as suspicious. It might be a malware.</p>{{ end }}
+        <p>Score: <span>{{.Score}}</span>
+        </p>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <td>Parameter</td>
+            <td>Value</td></tr>
+        </thead>
+        <tr>
+            <td>Name</td>
+            <td>{{.Name}}</td>
+        </tr>
+        <tr>
+            <td>Size </td>
+            <td>{{.Size}} bytes</td>
+        </tr>
+        <tr>
+            <td>Architecture </td>
+            <td>{{.Architecture}}</td>
+        </tr>
+        <tr>
+            <td>Format </td>
+            <td>{{.Format}}</td>
+        </tr>
+        <tr>
+            <td>Sha256 Hash</td>
+            <td>{{.Hash}}</td>
+        </tr>
+    </table>
+
+    <h2>Anomalies</h2>
+    <table>
+        <thead>
+            <tr>
+                <td>Main Reason</td>
+            <td>Points</td></tr>
+        </thead>
+        {{ range .Anomalies }}
+        <tr>
+            <td>{{.Reason}}</td>
+            <td>{{.Points}}</td>
+        </tr>
+        {{ end }}
+    </table>
+
+
+    {{ if eq .Format "ELF" }}
+        <h2>Ident</h2>
+        <table>
+            <thead>
+            <tr>
+                <td>Parameter</td>
+                <td>Value</td>
+            </tr>
+            </thead>
+            <tr>
+                <td>Magic</td>
+                <td>{{.ELFInterface.Ident.Magic}}</td>
+            </tr>
+            <tr>
+                <td>Class</td>
+                <td>{{.ELFInterface.Ident.Class}}</td>
+            </tr>
+            <tr>
+                <td>Endianness</td>
+                <td>{{.ELFInterface.Ident.Endianness}}</td>
+            </tr>
+            <tr>
+                <td>Version</td>
+                <td>{{.ELFInterface.Ident.Version}}</td>
+            </tr>
+            <tr>
+                <td>OSABI</td>
+                <td>{{.ELFInterface.Ident.OSABI}}</td>
+            </tr>
+            <tr>
+                <td>ABIVersion</td>
+                <td>{{.ELFInterface.Ident.ABIVersion}}</td>
+            </tr>
+            <tr>
+                <td>Padding</td>
+                <td>{{.ELFInterface.Ident.Padding}}</td>
+            </tr>
+            <tr>
+                <td>SizeIdent</td>
+                <td>{{.ELFInterface.Ident.SizeIdent}}</td>
+            </tr>
+        </table>
+
+        <h2>Header</h2>
+        <table>
+            <thead>
+                <tr>
+                    <td>Parameter</td>
+                    <td>Value</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>Type</td>
+                <td>{{ .ELFInterface.Header.Type }}</td>
+            </tr>
+            <tr>
+                <td>Machine</td>
+                <td>{{ .ELFInterface.Header.Machine }} <pre>{{.ELFInterface.Header.Machine | ELFprintMachine }}</pre></td>
+            </tr>
+            <tr>
+                <td>Version</td>
+                <td>{{ .ELFInterface.Header.Version }}</td>
+            </tr>
+            <tr>
+                <td>Entry</td>
+                <td>{{ .ELFInterface.Header.Entry }}</td>
+            </tr>
+            <tr>
+                <td>ProgramHeaderFileOffset</td>
+                <td>{{ .ELFInterface.Header.ProgramHeaderFileOffset }}</td>
+            </tr>
+            <tr>
+                <td>SectionHeaderFileOffset</td>
+                <td>{{ .ELFInterface.Header.SectionHeaderFileOffset }}</td>
+            </tr>
+            <tr>
+                <td>Flags</td>
+                <td>{{ .ELFInterface.Header.Flags }}</td>
+            </tr>
+            <tr>
+                <td>HeaderSize</td>
+                <td>{{ .ELFInterface.Header.HeaderSize }}</td>
+            </tr>
+            <tr>
+                <td>ProgramEntrySize</td>
+                <td>{{ .ELFInterface.Header.ProgramEntrySize }}</td>
+            </tr>
+            <tr>
+                <td>ProgramEntryNumbers</td>
+                <td>{{ .ELFInterface.Header.ProgramEntryNumbers }}</td>
+            </tr>
+            <tr>
+                <td>SectionEntryNumbers</td>
+                <td>{{ .ELFInterface.Header.SectionEntryNumbers }}</td>
+            </tr>
+            <tr>
+                <td>SectionEntrySize</td>
+                <td>{{ .ELFInterface.Header.SectionEntrySize }}</td>
+            </tr>
+            <tr>
+                <td>StringSectionsName</td>
+                <td>{{ .ELFInterface.Header.StringSectionsName }}</td>
+            </tr>
+        </table>
+
+        <h2>Sections</h2>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name Pointer</td>
+                    <td>Entropy</td>
+                    <td>Type</td>
+                    <td>Flags</td>
+                    <td>VirtualAddress</td>
+                    <td>Offset</td>
+                    <td>Size</td>
+                    <td>Link</td>
+                    <td>MiscInformation</td>
+                    <td>AddressAlignment</td>
+                    <td>EntrySize</td>
+                </tr>
+            </thead>
+            {{ range .ELFInterface.Sections }}
+                <tr>
+                    <td>{{.Name}}</td>
+                    <td>{{.Entropy}}</td>
+                    <td>{{.Header.Type}}</td>
+                    <td>{{.Header.Flags}}</td>
+                    <td>{{.Header.VirtualAddress}}</td>
+                    <td>{{.Header.Offset}}</td>
+                    <td>{{.Header.Size}} bytes</td>
+                    <td>{{.Header.Link}}</td>
+                    <td>{{.Header.MiscInformation}}</td>
+                    <td>{{.Header.AddressAlignment}}</td>
+                    <td>{{.Header.EntrySize}}</td>
+                </tr>
+            {{ end }}
+        </table>
+
+        <h2>Symbols</h2>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Information</td>
+                    <td>Other</td>
+                    <td>Index</td>
+                    <td>Value</td>
+                    <td>Size</td>
+                </tr>
+            </thead>
+            {{ range .ELFInterface.Symbols }}
+                <tr>
+                    <td>{{.Name}}</td>
+                    <td>{{.Information}}</td>
+                    <td>{{.Other}}</td>
+                    <td>{{.Index}}</td>
+                    <td>{{.Value}}</td>
+                    <td>{{.Size}}</td>
+                </tr>
+            {{ end }}
+        </table>
+
+    {{ end }}
+
+    {{ if eq .Format "PE" }}
+        <h2>DOSHeader</h2>
+
+        <h2>COFFHeader</h2>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Value</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>Machine</td>
+                <td>{{.PEInterface.COFFHeader.Machine}} (<pre>{{.PEInterface.COFFHeader.Machine | PEprintArchitecture }}</pre>)</td>
+            </tr>
+            <tr>
+                <td>NumberOfSections</td>
+                <td>{{.PEInterface.COFFHeader.NumberOfSections}}</td>
+            </tr>
+            <tr>
+                <td>TimeDateStamp</td>
+                <td>{{.PEInterface.COFFHeader.TimeDateStamp}}</td>
+            </tr>
+            <tr>
+                <td>PointerToSymbolTable</td>
+                <td>{{.PEInterface.COFFHeader.PointerToSymbolTable}}</td>
+            </tr>
+            <tr>
+                <td>NumberOfSymbols</td>
+                <td>{{.PEInterface.COFFHeader.NumberOfSymbols}}</td>
+            </tr>
+            <tr>
+                <td>SizeOfOptionalHeader</td>
+                <td>{{.PEInterface.COFFHeader.SizeOfOptionalHeader}}</td>
+            </tr>
+            <tr>
+                <td>Characteristics</td>
+                <td>{{.PEInterface.COFFHeader.Characteristics}}</td>
+            </tr>
+        </table>
+
+        <h2>OptionalHeader</h2>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Value</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>MajorLinkerVersion</td>
+                <td>{{.PEInterface.OptionalHeader.MajorLinkerVersion}}</td>
+            </tr>
+            <tr>
+                <td>MinorLinkerVersion</td>
+                <td>{{.PEInterface.OptionalHeader.MinorLinkerVersion}}</td>
+            </tr>
+            <tr>
+                <td>SizeOfCode</td>
+                <td>{{.PEInterface.OptionalHeader.SizeOfCode}}</td>
+            </tr>
+            <tr>
+                <td>SizeOfInitializedData</td>
+                <td>{{.PEInterface.OptionalHeader.SizeOfInitializedData}}</td>
+            </tr>
+            <tr>
+                <td>SizeOfUninitializedData</td>
+                <td>{{.PEInterface.OptionalHeader.SizeOfUninitializedData}}</td>
+            </tr>
+
+            <tr>
+                <td>AddressOfEntryPoint</td>
+                <td>{{.PEInterface.OptionalHeader.AddressOfEntryPoint}}</td>
+            </tr>
+            <tr>
+            <td>BaseOfCode</td>
+            <td>{{.PEInterface.OptionalHeader.BaseOfCode}}</td>
+        </tr>
+            {{ if not .PEInterface.Is64bit }}
+            <tr>
+                <td>BaseOfData</td>
+                <td>{{.PEInterface.OptionalHeader.BaseOfCode}}</td>
+            </tr>
+            {{ end }}
+            <tr>
+                <td>ImageBase</td>
+                <td>{{.PEInterface.OptionalHeader.ImageBase}}</td>
+            </tr>
+            <tr>
+                <td>SectionAlignment</td>
+                <td>{{.PEInterface.OptionalHeader.SectionAlignment}}</td>
+            </tr>
+            <tr>
+                <td>FileAlignment</td>
+                <td>{{.PEInterface.OptionalHeader.FileAlignment}}</td>
+            </tr>
+            <tr>
+                <td>MajorOperatingSystemVersion</td>
+                <td>{{.PEInterface.OptionalHeader.MajorOperatingSystemVersion | PEprintMajorOperatingVersion }}</td>
+            </tr>
+            <tr>
+                <td>MinorOperatingSystemVersion</td>
+                <td>{{.PEInterface.OptionalHeader.MinorOperatingSystemVersion}}</td>
+            </tr>
+            <tr>
+                <td>MajorImageVersion</td>
+                <td>{{.PEInterface.OptionalHeader.MajorImageVersion}}</td>
+            </tr>
+            <tr>
+                <td>MinorImageVersion</td>
+                <td>{{.PEInterface.OptionalHeader.MinorImageVersion}}</td>
+            </tr>
+            <tr>
+                <td>MajorSubsystemVersion</td>
+                <td>{{.PEInterface.OptionalHeader.MajorSubsystemVersion}}</td>
+            </tr>
+            <tr>
+                <td>MinorSubsystemVersion</td>
+                <td>{{.PEInterface.OptionalHeader.MajorSubsystemVersion}}</td>
+            </tr>
+            <tr>
+                <td>Win32VersionValue</td>
+                <td>{{.PEInterface.OptionalHeader.Win32VersionValue}}</td>
+            </tr>
+            <tr>
+                <td>SizeOfImage</td>
+                <td>{{.PEInterface.OptionalHeader.SizeOfImage}}</td>
+            </tr>
+            <tr>
+                <td>SizeOfHeaders</td>
+                <td>{{.PEInterface.OptionalHeader.SizeOfHeaders}}</td>
+            </tr>
+            <tr>
+                <td>Checksum</td>
+                <td>{{.PEInterface.OptionalHeader.Checksum}}</td>
+            </tr>
+            <tr>
+                <td>Subsystem</td>
+                <td>{{ .PEInterface.OptionalHeader.Subsystem }} {{.PEInterface.OptionalHeader.Subsystem | PEprintSubsystem}}</td>
+            </tr>
+            <tr>
+                <td>DllCharacteristics</td>
+                <td>{{.PEInterface.OptionalHeader.DllCharacteristics}}</td>
+            </tr>
+            <tr>
+                <td>SizeOfStackReserve</td>
+                <td>{{.PEInterface.OptionalHeader.SizeOfStackReserve}}</td>
+            </tr>
+            <tr>
+                <td>SizeOfStackCommit</td>
+                <td>{{.PEInterface.OptionalHeader.SizeOfStackCommit}}</td>
+            </tr>
+            <tr>
+                <td>SizeOfHeapReserve</td>
+                <td>{{.PEInterface.OptionalHeader.SizeOfHeapReserve}}</td>
+            </tr>
+            <tr>
+                <td>SizeOfHeapCommit</td>
+                <td>{{.PEInterface.OptionalHeader.SizeOfHeapCommit}}</td>
+            </tr>
+            <tr>
+                <td>LoaderFlags</td>
+                <td>{{.PEInterface.OptionalHeader.LoaderFlags}}</td>
+            </tr>
+            <tr>
+                <td>NumberOfRvaAndSize</td>
+                <td>{{.PEInterface.OptionalHeader.NumberOfRvaAndSizes}}</td>
+            </tr>
+        </table>
+
+        <h2>Sections</h2>
+        <table>
+            <thead>
+            <tr>
+                <td>Name</td>
+                <td>VirtualSize</td>
+                <td>VirtualAddress</td>
+                <td>SizeOfRawData</td>
+                <td>Characteristics</td>
+                <td>Entropy</td>
+            </tr>
+            </thead>
+            {{ range .PEInterface.Sections }}
+            <tr>
+                <td>{{.Name }}</td>
+                <td>{{.VirtualSize}} bytes</td>
+                <td>{{.VirtualAddress}}</td>
+                <td>{{.SizeOfRawData}} bytes</td>
+                <td>{{.Characteristics}}</td>
+                <td>{{.Entropy}}</td>
+            </tr>
+            {{ end }}
+        </table>
+
+        {{ if .PEInterface.Imports }}
+        <h2>Imports</h2>
+        <table>
+            <thead>
+            <tr>
+            <td>Function name</td>
+            <td>DLL name</td>
+            </tr>
+            </thead>
+        {{ range .PEInterface.Imports }}
+            <tr>
+                <td>{{.APICalled}}</td>
+                <td>{{.DllName}}</td>
+            </tr>
+        {{ end }}
+        </table>
+
+        {{ if .PEInterface.Exports }}
+        <h2>Exports</h2>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Ordinal</td>
+                    <td>RVA</td>
+                </tr>
+            </thead>
+
+        {{ range .PEInterface.Exports }}
+            <tr>
+                <td>{{.Name}}</td>
+                <td>{{.Ordinal}}</td>
+                <td>{{.RVA}}</td>
+            </tr>
+        {{ end }}
+        </table>
+        {{ end }}
+
+        {{ if .PEInterface.Resource }}
+        <h2>Resources</h2>
+        <table>
+            <thead>
+            <tr>
+                <td>Name</td>
+                <td>Offset</td>
+                <td>Size</td>
+                <td>Content Type</td>
+                <td>Resource Type</td>
+            </tr>
+            </thead>
+            {{ range .PEInterface.Resource }}
+            <tr>
+                <td>{{.Name}}</td>
+                <td>{{.Offset}}</td>
+                <td>{{.Size}} bytes</td>
+                <td>{{.ContentType}}</td>
+                <td>{{.Type}}</td>
+            </tr>
+            {{ end }}
+        </table>
+
+    {{ range .PEInterface.Resource }}
+    <details>
+        <summary>
+            {{.Name}} raw content
+        </summary>
+        {{ if eq .Type 24 }}
+            {{ printf "%s" .Content}}
+        {{ else }}
+            {{.Content}}
+        {{ end }}
+    </details>
+    {{ end }}
+
+    {{ end }}
+
+        {{ if .PEInterface.RichHeader }}
+            <h2>RichHeader</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <td>Name</td>
+                        <td>Value</td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>XORKey</td>
+                    <td>{{.PEInterface.RichHeader.XORKey}}</td>
+                </tr>
+            </table>
+            {{end }}
+        {{ end }}
+    {{ end }}
+
+    <details>
+        <summary>
+            Extracted Strings
+        </summary>
+    <table>
+    {{range .ExtractedStrings}}
+    <tr><td>{{.}}</td></tr>
+    {{ end }}
+    </table>
+    </details>
+
+    <!--
+    <details>
+        <summary>
+            Debug
+        </summary>
+    {{ printf "%#v" .}}
+    </details>
+    -->
+</div>
+
+
+</body>
+</html>

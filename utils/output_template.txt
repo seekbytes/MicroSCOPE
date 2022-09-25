@@ -1,0 +1,100 @@
+======= MICROSCOPE RESULT =======
+Nome del file: {{.Name}}
+Dimensioni del file: {{.Size}} bytes
+Architettura: {{.Architecture}}.
+Tipo di file: {{.Format}}
+{{ if ge .Score .Threshold }}
+=================================================
+!!!!! File has been reported as RANSOMWARE. !!!!!
+=================================================
+{{- end -}} {{- $thresholds := divide .Threshold 2 -}} {{- if and (ge .Score $thresholds) (le .Score .Threshold) -}}
+File has been reported as suspicious. It might be a malware.
+{{ end }}
+
+Punteggio: {{.Score}}
+
+==========* ANOMALIE *===========
+MicroSCOPE ha trovato le seguenti anomalie:
+{{ range .Anomalies }}
+[+{{.Points}}]   {{.Reason}}
+{{ end }}
+{{.Score}}
+
+{{ if eq .Format "ELF" }}
+=========== IDENT ===============
+{{ printf "%#v" .ELFInterface.Ident }}
+
+=========== HEADER ===============
+{{ printf "%#v" .ELFInterface.Header }}
+
+=========== SECTIONS =============
+{{ range .ELFInterface.Sections }}
+----------------------------------
+Sezione {{.Name}}
+Entropia: {{.Entropy}}
+Tipo: {{.Header.Type}}
+Flags: {{.Header.Flags}}
+VirtualAddress: {{.Header.VirtualAddress}}
+Offset: {{.Header.Offset}}
+Dimensione: {{.Header.Size}} bytes
+Link: {{.Header.Link}}
+MiscInformation: {{.Header.MiscInformation}}
+AddressAlignment: {{.Header.AddressAlignment}}
+EntrySize: {{.Header.EntrySize}}
+{{ end }}
+
+============== SYMBOLS ===========
+{{ range .ELFInterface.Symbols }}
+---------------------------------
+Simbolo {{.Name}}
+Information: {{.Information}}
+Other: {{.Other}}
+Index: {{.Index}}
+Value: {{.Value}}
+Size: {{.Size}}
+{{ end }}
+
+{{ end }}
+
+{{ if eq .Format "PE" }}
+=========== COFF HEADER ==========
+
+{{ printf "%+v" .PEInterface.COFFHeader }}
+
+========= OPTIONAL HEADER =========
+
+{{ printf "%+v" .PEInterface.OptionalHeader }}
+
+=========== SECTIONS ==============
+{{ range .PEInterface.Sections }}
+----------------------------------
+Sezione {{.Name}}
+VirtualSize: {{.VirtualSize}}
+VirtualAddress: {{ .VirtualAddress }}
+SizeOfRawData: {{.SizeOfRawData}} bytes
+Characteristics: {{.Characteristics}}
+Entropy: {{.Entropy}}
+{{ end }}
+
+{{ if .PEInterface.Imports }}
+============= IMPORTS =============
+{{ range .PEInterface.Imports }}
+{{.APICalled}}  {{.DllName}}
+{{ end }}
+{{ end }}
+
+{{ if .PEInterface.Resource }}
+============ RESOURCES =============
+
+{{ range .PEInterface.Resource }}
+------------------------------------
+Risorsa
+Nome: {{.Name}}
+Offset: {{.Offset}}
+Dimensione: {{.Size}} bytes
+Content Type: {{.ContentType}}
+Resource Type: {{.Type}}
+{{ end }}
+{{ end}}
+
+{{ end }}
