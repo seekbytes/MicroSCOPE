@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/binary"
 	"strings"
+	"unicode"
 	"unicode/utf16"
 )
 
@@ -59,4 +60,13 @@ func IdentifyFile(b []byte) string {
 		}
 	}
 	return ""
+}
+
+func IsASCIIPrintable(s string) bool {
+	for _, r := range s {
+		if r > unicode.MaxASCII || !unicode.IsPrint(r) {
+			return false
+		}
+	}
+	return true
 }

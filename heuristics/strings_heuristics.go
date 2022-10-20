@@ -3,6 +3,8 @@ package heuristics
 import (
 	"encoding/base64"
 	"fmt"
+	"microscope/utils"
+	"regexp"
 	"strings"
 )
 
@@ -25,11 +27,11 @@ func CalculateStrings(extractedStrings []string) {
 		"you should download and install TOR browser": 100,
 		"All of your files are currently encrypted":   100,
 		"DON'T TRY TO RECOVER":                        100,
-		".onion":                                      50,
 		"damage the cipher":                           20,
 		"decryption will be impossible":               20,
 		"Can I recover my files?":                     50,
 		"encrypt all":                                 40,
+		".onion":                                      50,
 	}
 
 	// packers
@@ -60,14 +62,15 @@ func CalculateStrings(extractedStrings []string) {
 	}
 
 	openssl := map[string]int{
-		"assertion failed: bl <= (int)sizeof(ctx->buf)\n": 10,
-		"crypto\\bio\\bss_mem.c\n":                        10,
-		"crypto\\pem\\pem_lib.c\n":                        10,
-		"OpenSSL PKCS#1 RSA (from Eric Young)\n":          10,
-		"CRYPTOGAMS by <appro@openssl.org>":               10,
+		"assertion failed: bl <= (int)sizeof(ctx->buf)": 10,
+		"crypto\\bio\\bss_mem.c":                        10,
+		"crypto\\pem\\pem_lib.c":                        10,
+		"OpenSSL PKCS#1 RSA (from Eric Young)":          10,
+		"CRYPTOGAMS by <appro@openssl.org>":             10,
 	}
 
 	pointsSSL := 0
+	var librerieTrovate []string
 
 	for i := 0; i < len(extractedStrings); i++ {
 		pointsExtensions := 0
@@ -76,34 +79,40 @@ func CalculateStrings(extractedStrings []string) {
 				pointsExtensions += pointsToAdd
 			}
 		}
-		if pointsExtensions > 4 {
+		if pointsExtensions > 6 {
 			addExtensionList(extractedStrings[i])
 		}
 
 		for stringToCompare, pointsToAdd := range ransomware {
 			if strings.Contains(extractedStrings[i], stringToCompare) {
-				InsertAnomaly("La stringa "+extractedStrings[i]+" indica che il programma è molto simile ad un ransomware.", pointsToAdd)
+				InsertAnomalyString("La stringa "+extractedStrings[i]+" indica che il programma è molto simile ad un ransomware.", pointsToAdd)
 			}
 		}
 
 		for stringToCompare, pointsToAdd := range packers {
 			if strings.Contains(extractedStrings[i], stringToCompare) {
-				InsertAnomaly("La stringa "+extractedStrings[i]+" indica che il programma è molto probabilmente stato compresso con UPX o similari.", pointsToAdd)
+				InsertAnomalyString("La stringa "+extractedStrings[i]+" indica che il programma è molto probabilmente stato compresso con UPX o similari.", pointsToAdd)
 			}
 		}
 
 		// Controlla se è un indirizzo Bitcoin
 		if len(extractedStrings) > 26 && len(extractedStrings) < 35 {
 			if extractedStrings[i][0] == '1' || extractedStrings[i][0:3] == "bc1" || extractedStrings[i][0] == '3' {
-				InsertAnomaly("La stringa "+extractedStrings[i]+" potrebbe indicare un indirizzo Bitcoin", 5)
+				InsertAnomalyString("La stringa "+extractedStrings[i]+" potrebbe indicare un indirizzo Bitcoin", 5)
 			}
 		}
 
-		// Controlla se è un indirizzo di Monero
-		if len(extractedStrings) == 94 {
-			if extractedStrings[i][0] == '4' {
-				InsertAnomaly("La stringa "+extractedStrings[i]+" potrebbe indicare un indirizzo Monero", 5)
+		// Estrazione Bitcoin Address alternativa
 
+		isBitcoin, _ := regexp.Match("^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$", []byte(extractedStrings[i]))
+		if isBitcoin {
+			InsertAnomalyString("La stringa "+extractedStrings[i]+" potrebbe indicare un indirizzo Bitcoin", 10)
+		}
+
+		// Controlla se è un indirizzo di Monero
+		if len(extractedStrings) == 95 {
+			if extractedStrings[i][0] == '4' || extractedStrings[i][0] == '8' {
+				InsertAnomalyString("La stringa "+extractedStrings[i]+" potrebbe indicare un indirizzo Monero", 5)
 			}
 		}
 
@@ -111,16 +120,27 @@ func CalculateStrings(extractedStrings []string) {
 		for stringToCompare, pointsToAdd := range openssl {
 			if pointsSSL < 10 && strings.Contains(extractedStrings[i], stringToCompare) {
 				pointsSSL += pointsToAdd
-				InsertAnomaly("Questo binario utilizza la libreria OpenSSL.", 5)
+				InsertAnomalyString("Questo binario utilizza la libreria OpenSSL.", 5)
 				break
 			}
 		}
+
+		wasFound := strings.Index(extractedStrings[i], "CRYPTOGAMS by <appro@openssl.org>")
+		if wasFound != -1 {
+			librerieTrovate = append(librerieTrovate, extractedStrings[i][0:wasFound])
+		}
+
+	}
+
+	if len(librerieTrovate) != 0 {
+		libString := fmt.Sprintf("%v", librerieTrovate)
+		InsertAnomalyString("Sono state individuate le seguenti librerie che implementano algoritmi per la crittografia:\n "+libString, 1*len(librerieTrovate))
 	}
 
 }
 
 func addExtensionList(s string) {
-	InsertAnomaly("Questo binario controlla una certa lista di estensioni che non hanno alcun elemento in comune: "+s, 30)
+	InsertAnomalyString("Questo binario controlla una certa lista di estensioni che non hanno alcun elemento in comune: "+s, 30)
 }
 
 func CalculatePointsStringELF(extractedStrings []string) {
@@ -134,22 +154,27 @@ func CalculatePointsStringELF(extractedStrings []string) {
 		"/dev/urandom":           10, // ransomware ottiene entropia dall'ambiente
 		"Locked":                 5,
 		"Lock":                   5,
-		"Usage example":          2,   // utilizziamo questa stringa per ricavare un possibile descrizione dall'"help" del programma
 		"esxcli vm process kill": 100, // a meno che non sia VMWARE, non c'è motivo di accedere esxcli e di uccidere tutti i processi
 	}
 
 	for i := 0; i < len(extractedStrings); i++ {
 		for stringToCompare, pointsToAdd := range pathToIgnore {
 			if strings.Contains(extractedStrings[i], stringToCompare) {
-				InsertAnomaly("La stringa "+extractedStrings[i]+" indica eventuali percorsi che il programma potrebbe ignorare.", pointsToAdd)
+				InsertAnomalyString("La stringa "+extractedStrings[i]+" indica eventuali percorsi che il programma potrebbe ignorare.", pointsToAdd)
 			}
 		}
 
 		for stringToCompare, pointsToAdd := range ransomware {
 			if strings.Contains(extractedStrings[i], stringToCompare) {
-				InsertAnomaly("La stringa "+extractedStrings[i]+" è simile ad altre stringhe individuate su ransomware.", pointsToAdd)
+				InsertAnomalyString("La stringa "+extractedStrings[i]+" è simile ad altre stringhe individuate su ransomware.", pointsToAdd)
 			}
 		}
+
+		if strings.Contains(extractedStrings[i], "Usage example") {
+			// utilizziamo questa stringa per ricavare un possibile descrizione dall'"help" del programma
+			InsertAnomalyString("È stata rilevata una descrizione di un help del programma: "+extractedStrings[i], 0)
+		}
+
 	}
 }
 
@@ -240,32 +265,32 @@ func CalculatePointsStringPE(extractedStrings []string, isDotNet bool) int {
 
 		for stringToCompare, pointsToAdd := range deleteStrings {
 			if strings.Contains(extractedStrings[i], stringToCompare) {
-				InsertAnomaly("La stringa "+extractedStrings[i]+" indica che il programma elimina copie shadow o copie di backup.", pointsToAdd)
+				InsertAnomalyString("La stringa "+extractedStrings[i]+" indica che il programma elimina copie shadow o copie di backup.", pointsToAdd)
 			}
 		}
 
 		for stringToCompare, pointsToAdd := range ignoredPath {
 			if strings.Contains(extractedStrings[i], stringToCompare) {
-				InsertAnomaly("La stringa "+extractedStrings[i]+" indica che il programma ignora alcune path di sistema.", pointsToAdd)
+				InsertAnomalyString("La stringa "+extractedStrings[i]+" indica che il programma ignora alcune path di sistema.", pointsToAdd)
 			}
 		}
 
 		for stringToCompare, pointsToAdd := range processes {
 			if strings.Contains(extractedStrings[i], stringToCompare) {
-				InsertAnomaly("La stringa "+extractedStrings[i]+" indica che il programma utilizza attivamente il processo.", pointsToAdd)
+				InsertAnomalyString("La stringa "+extractedStrings[i]+" indica che il programma utilizza attivamente il processo.", pointsToAdd)
 			}
 		}
 
 		if isDotNet {
 			for stringToCompare, pointsToAdd := range NetImports {
 				if strings.Contains(extractedStrings[i], stringToCompare) {
-					InsertAnomaly("La stringa "+extractedStrings[i]+" indica che il programma utilizza funzioni che reperiscono informazioni.", pointsToAdd)
+					InsertAnomalyString("La stringa "+extractedStrings[i]+" indica che il programma utilizza funzioni che reperiscono informazioni.", pointsToAdd)
 				}
 			}
 		}
 
 		if strings.Contains(extractedStrings[i], "Wallpaper /T REG_SZ /F /D") {
-			InsertAnomaly("Il programma cambia wallpaper da linea di comando. Questo metodo è spesso utilizzato da programmi malevoli.", 10)
+			InsertAnomalyString("Il programma cambia wallpaper da linea di comando. Questo metodo è spesso utilizzato da programmi malevoli.", 10)
 		}
 
 		// TODO: FixME!
@@ -284,8 +309,9 @@ func CalculatePointsStringPE(extractedStrings []string, isDotNet bool) int {
 		}
 
 		if strToDecode != extractedStrings[i] {
-			fmt.Println(strToDecode)
-			InsertAnomaly("Individuata stringa Base64. "+extractedStrings[i], 3)
+			if utils.IsASCIIPrintable(strToDecode) {
+				InsertAnomalyString("Individuata stringa Base64. "+extractedStrings[i], 3)
+			}
 		}
 
 	}

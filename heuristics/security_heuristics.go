@@ -7,7 +7,7 @@ func CalculatePointsSecurity(SecuritySection []pe.SecurityHeader) int {
 
 	for i := 0; i < len(SecuritySection); i++ {
 		if !SecuritySection[i].IsSigned {
-			InsertAnomaly("Il binario presenta delle firme ma sono invalide.", 50)
+			InsertAnomalyFileFormat("Il binario presenta delle firme ma sono invalide.", 50)
 			break
 		}
 	}

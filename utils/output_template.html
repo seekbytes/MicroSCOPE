@@ -61,38 +61,82 @@
         display: inline-block;
         font-size: 1rem;
     }
+
+    /*
+        Colori di sfondo
+     */
+    .anomaly-1{
+        background-color: #cae5ff
+    }
+
+    .anomaly-2{
+        background-color: #f8d0e4;
+    }
+
+    .anomaly-3{
+        background-color: #f8ebd0;
+    }
+
+    .anomaly-4{
+        background-color: #d4ebd0;
+    }
+
+    .legend{
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .legend-item{
+        display: flex;
+        align-items: center;
+    }
+
+    .legend-item p{
+        padding-left: 4px
+    }
+
+    .legend-block{
+        width:20px;
+        height: 20px;
+        border:1px solid #ededed
+    }
+
+    .full-width{
+        width:100%;
+    }
+
 </style>
 <body>
 <div class="container">
     <h1>MicroSCOPE report</h1>
-    <p class="detail">This report has been generated at {{now}}.</p>
+    <p class="detail">Questo report è stato generato il {{now}}.</p>
     <div class="score-box {{ if ge .Score .Threshold }}score-red{{else}}score-ok{{end}}">
-        {{ if ge .Score .Threshold}}<p> File has been reported as <b>RANSOMWARE</b>.</p>{{ end }}
+        {{ if ge .Score .Threshold}}<p> Il file è stato contrassegnato come <b>RANSOMWARE</b>.</p>{{ end }}
         {{ $thresholds := divide .Threshold 2}}
-        {{ if and (ge .Score $thresholds) (le .Score .Threshold) }}<p>File has been reported as suspicious. It might be a malware.</p>{{ end }}
-        <p>Score: <span>{{.Score}}</span>
+        {{ if and (ge .Score $thresholds) (le .Score .Threshold) }}<p>Il file presenta caratteristiche molto simili ai malware. Prestare attenzione.</p>{{ end }}
+        <p>Punteggio: <span>{{.Score}}</span>
         </p>
     </div>
     <table>
         <thead>
         <tr>
-            <td>Parameter</td>
-            <td>Value</td></tr>
+            <td>Parametro</td>
+            <td>Valore</td></tr>
         </thead>
         <tr>
-            <td>Name</td>
+            <td>Nome del file</td>
             <td>{{.Name}}</td>
         </tr>
         <tr>
-            <td>Size </td>
+            <td>Dimensione </td>
             <td>{{.Size}} bytes</td>
         </tr>
         <tr>
-            <td>Architecture </td>
+            <td>Architettura </td>
             <td>{{.Architecture}}</td>
         </tr>
         <tr>
-            <td>Format </td>
+            <td>Formato file </td>
             <td>{{.Format}}</td>
         </tr>
         <tr>
@@ -101,7 +145,28 @@
         </tr>
     </table>
 
-    <h2>Anomalies</h2>
+    <h2>Anomalie</h2>
+    <p>In questa sezione si riassumono tutte le anomalie trovate all'interno del file compatibile con il comportamento di un ransowmare.</p>
+    <div class="full-width">
+    <div class="legend">
+        <div class="legend-item">
+            <div class="anomaly-1 legend-block"></div>
+            <p>Formato file</p>
+        </div>
+        <div class="legend-item">
+            <div class="anomaly-2 legend-block"></div>
+            <p>API importate</p>
+        </div>
+        <div class="legend-item">
+            <div class="anomaly-3 legend-block"></div>
+            <p>Stringhe</p>
+        </div>
+        <div class="legend-item">
+            <div class="anomaly-4 legend-block"></div>
+            <p>Sezioni</p>
+        </div>
+    </div>
+    </div>
     <table>
         <thead>
             <tr>
@@ -109,7 +174,7 @@
             <td>Points</td></tr>
         </thead>
         {{ range .Anomalies }}
-        <tr>
+        <tr class="anomaly-{{.Type}}">
             <td>{{.Reason}}</td>
             <td>{{.Points}}</td>
         </tr>
@@ -284,6 +349,22 @@
 
     {{ if eq .Format "PE" }}
         <h2>DOSHeader</h2>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Value</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>MagicDos</td>
+                <td>{{.PEInterface.DosHeader.MagicDos}}</td>
+            </tr>
+            <tr>
+                <td>AddressOffset</td>
+                <td>{{.PEInterface.DosHeader.AddressExeOffset}}</td>
+            </tr>
+        </table>
 
         <h2>COFFHeader</h2>
         <table>

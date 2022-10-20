@@ -46,3 +46,7 @@ func ExtractStrings(file *os.File, min, max int, ascii bool) []string {
 		str = append(str, ch)
 	}
 }
+
+func ExtractHTTPAddress() {
+
+}

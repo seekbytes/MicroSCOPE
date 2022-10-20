@@ -22,6 +22,7 @@ type FileAnalyzed struct {
 }
 
 type Anomaly struct {
-	Reason string
-	Points int
+	Reason string // Ragione dell'anomalia
+	Points int    // Punteggio assegnato all'anomalia
+	Type   uint   // Tipo di anomalia (1: difetti sul file, 2: imports/sysapi, 3: stringhe)
 }

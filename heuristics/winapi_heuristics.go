@@ -1,13 +1,10 @@
 package heuristics
 
 import (
-	"fmt"
 	"microscope/formats/pe"
 )
 
-func CalculatePointsImports(Imports []*pe.ImportInfo) int {
-	points := 0
-
+func CalculatePointsImports(Imports []*pe.ImportInfo) {
 	// https://malapi.io/
 
 	// API per acquisire informazioni
@@ -25,6 +22,7 @@ func CalculatePointsImports(Imports []*pe.ImportInfo) int {
 		"CreateToolhelp32Snapshot":       20,
 		"GetUserDefaultLangID":           2,
 		"TerminateProcess":               10,
+		"NtYieldExecution":               20,
 	}
 
 	queueIOImports := map[string]int{
@@ -44,10 +42,6 @@ func CalculatePointsImports(Imports []*pe.ImportInfo) int {
 		"ShellExecute":            10,
 	}
 
-	/*miscActions := map[string]int{
-		"LoadLibrary": 2, // non possiamo essere così restrittivi dato che anche un normale programma carica una libreria
-	}*/
-
 	networkImports := map[string]int{
 		"WNetOpenEnum":      5,
 		"WNetEnumResource":  5,
@@ -55,18 +49,33 @@ func CalculatePointsImports(Imports []*pe.ImportInfo) int {
 		"WNetAddConnection": 5,
 	}
 
+	fileImports := map[string]int{
+		"FindFirstVolume": 10,
+		"FindNextVolume":  10,
+	}
+
 	ransomwareImports := map[string]int{
 		"CryptDeriveKey":           10,
 		"CryptEncrypt":             10,
-		"CryptDecrypt":             4,
-		"CryptImportPublicKeyInfo": 10,
-		"CryptAcquireContext":      10,
-		"CryptGenKey":              10,
-		"GetFileType":              10,
+		"CryptDecrypt":             10,
+		"CryptImportPublicKeyInfo": 20,
+		"CryptAcquireContext":      20,
+		"CryptDestroyKey":          20,
+		"CryptRelaseContext":       20,
+		"CryptGenKey":              20,
+		"GetFileType":              20,
 		"FindFirstFile":            20,
 		"SetRenameInformationFile": 10,
 		"FindNextFile":             10, // https://core.ac.uk/download/pdf/159235636.pdf
 		"SystemFunction036":        10, // funzione per generare un numero casuale, non abitualmente utilizzata (vedi RtlGenRandom)
+	}
+
+	securityImports := map[string]int{
+		"GetSecurityDescriptorSacl":    5,
+		"GetSecurityDescriptorDacl":    5,
+		"GetSecurityDescriptorGroup":   5,
+		"GetSecurityDescriptorOwner":   5,
+		"GetSecurityDescriptorControl": 5,
 	}
 
 	for i := 0; i < len(Imports); i++ {
@@ -84,34 +93,45 @@ func CalculatePointsImports(Imports []*pe.ImportInfo) int {
 				importName = importName[:len(importName)-3]
 			}
 		}
+
 		// API per l'anti-debugging
 		if pointToAdd, isFound := antiDebuggingImports[importName]; isFound {
-			InsertAnomaly("È stata trovata una funzione che presenta caratteristiche anti-debugging: "+importName, pointToAdd)
+			InsertAnomalyImports("È stata trovata una funzione che presenta caratteristiche anti-debugging: "+importName, pointToAdd)
 		}
 
 		// API che reperiscono informazioni senza che l'utente se ne accorga
 		if pointToAdd, isFound := stealthImports[importName]; isFound {
-			InsertAnomaly("È stata trovata una funzione che reperisce informazioni sul sistema: "+importName, pointToAdd)
+			InsertAnomalyImports("È stata trovata una funzione che reperisce informazioni sul sistema: "+importName, pointToAdd)
 		}
 
 		if pointToAdd, isFound := ransomwareImports[importName]; isFound {
-			InsertAnomaly("È stata trovata una funzione compatibile con il comportamento di un ransomware: "+importName, pointToAdd)
+			InsertAnomalyImports("È stata trovata una funzione compatibile con il comportamento di un ransomware: "+importName, pointToAdd)
 		}
 
 		if pointToAdd, isFound := queueIOImports[importName]; isFound {
-			InsertAnomaly("È stata trovata una funzione che modifica la coda dei dispositivi I/O: "+importName, pointToAdd)
+			InsertAnomalyImports("È stata trovata una funzione che modifica la coda dei dispositivi I/O: "+importName, pointToAdd)
 		}
 
 		if pointToAdd, isFound := networkImports[importName]; isFound {
-			fmt.Printf("%s : %d \n", importName, pointToAdd)
-			points += pointToAdd
+			InsertAnomalyImports("È stata trovata una funzione che utilizza la rete: "+importName, pointToAdd)
 		}
 
 		if pointToAdd, isFound := gatheringImports[importName]; isFound {
-			InsertAnomaly("È stata trovata una funzione che acquisisce informazioni sui processi in uso o sull'environment: "+importName, pointToAdd)
+			InsertAnomalyImports("È stata trovata una funzione che acquisisce informazioni sui processi in uso o sull'environment: "+importName, pointToAdd)
+		}
+
+		if pointToAdd, isFound := securityImports[importName]; isFound {
+			InsertAnomalyImports("È stata trovata una funzione che acquisisce informazioni sul contesto di sicurezza per l'utente: "+importName, pointToAdd)
+		}
+
+		if pointToAdd, isFound := securityImports[importName]; isFound {
+			InsertAnomalyImports("È stata trovata una funzione che acquisisce informazioni sul contesto di sicurezza per l'utente: \""+importName+"\"", pointToAdd)
+		}
+
+		if pointToAdd, isFound := fileImports[importName]; isFound {
+			InsertAnomalyImports("È stata trovata una funzione che acquisisce informazioni sui dispositivi di memoria secondaria: \""+importName+"\"", pointToAdd)
 		}
 
 	}
 
-	return points
 }

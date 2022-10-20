@@ -1,7 +1,6 @@
 package heuristics
 
 import (
-	"fmt"
 	"microscope/formats"
 	"strings"
 )
@@ -18,11 +17,12 @@ func Execute(analyzed *formats.FileAnalyzed) {
 	}
 
 	if analyzed.Format == "PE" {
+
 		var isDotNet bool
 		if len(analyzed.PEInterface.Imports) == 1 {
 			if analyzed.PEInterface.Imports[0].APICalled == "_CorExeMain" {
 				isDotNet = true
-				InsertAnomaly("Il programma è un file eseguibile .NET.", 0)
+				InsertAnomalyOthers("Il programma è un file eseguibile .NET.", 0)
 			}
 		}
 
@@ -41,6 +41,8 @@ func Execute(analyzed *formats.FileAnalyzed) {
 	}
 
 	if analyzed.Format == "ELF" {
+
+		CheckELFHeader()
 		// Euristica sull'entropia
 		CalculatePointsEntropy(analyzed.ELFInterface.Sections)
 
@@ -67,33 +69,32 @@ func GuessLanguageByStrings(extractedStrings []string) string {
 	for i := 0; i < len(extractedStrings); i++ {
 		for stringToCompare, pointsToAdd := range golangstrings {
 			if strings.Contains(extractedStrings[i], stringToCompare) {
-				fmt.Println(extractedStrings[i])
 				points += pointsToAdd
 			}
 		}
 	}
 
 	if points != 0 {
-		InsertAnomaly("Il binario è stato probabilmente scritto in Golang.", 0)
+		InsertAnomalyOthers("Il binario è stato probabilmente scritto in Golang.", 0)
 		return "Go"
 	}
 
 	points = 0
 
 	pythonstrings := map[string]int{
-		"python": 1,
+		".phyc": 1,
 	}
 
 	for i := 0; i < len(extractedStrings); i++ {
 		for stringToCompare, pointsToAdd := range pythonstrings {
 			if strings.Contains(extractedStrings[i], stringToCompare) {
-				fmt.Println(extractedStrings[i])
 				points += pointsToAdd
 			}
 		}
 	}
 
 	if points != 0 {
+		InsertAnomalyOthers("Il binario è stato probabilmente scritto in Python.", 0)
 		return "Python"
 	}
 
