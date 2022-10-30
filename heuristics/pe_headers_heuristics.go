@@ -87,10 +87,6 @@ func CheckOptionalHeader32(header pe.PEOptionalHeaderT) {
 		InsertAnomalyFileFormat("ImageDataDirectory valore invalido.", 10)
 	}
 
-	if int(header.NumberOfRvaAndSizes) != len(FileAnalyzed.PEInterface.Sections) {
-		InsertAnomalyFileFormat("Il numero delle sezioni è diverso rispetto a quello dichiarato. Valore ottenuto: "+strconv.Itoa(int(header.NumberOfRvaAndSizes))+", numero di sezioni effettive: "+strconv.Itoa(len(FileAnalyzed.PEInterface.Sections)), 10)
-	}
-
 	if header.LoaderFlags != 0 {
 		InsertAnomalyFileFormat("Attenzione: LoaderFlags diverso da zero.", 10)
 	}
@@ -178,6 +174,10 @@ func CheckCOFFHeader(CoffHeader *pe.COFFHeaderT) {
 		InsertAnomalyFileFormat("Attenzione: il numero di sezioni non può essere minore di 1.", 10)
 	}
 
+	if int(CoffHeader.NumberOfSections) != len(FileAnalyzed.PEInterface.Sections) {
+		InsertAnomalyFileFormat("Il numero delle sezioni è diverso rispetto a quello dichiarato. Valore ottenuto: "+strconv.Itoa(int(CoffHeader.NumberOfSections))+", numero di sezioni effettive: "+strconv.Itoa(len(FileAnalyzed.PEInterface.Sections)), 10)
+	}
+
 	// Un programma di solito ha NOVE sezioni predefinite (.text, .bss, .rdata, .data, .rsrc, .edata, .idata, .pdata e .debug)
 	// Windows NT 5 o precedenti: valore non può essere maggiore di 96
 	// Windows NT 6: valore può raggiungere 65535
@@ -218,8 +218,17 @@ func CheckCOFFHeader(CoffHeader *pe.COFFHeaderT) {
 		InsertAnomalyFileFormat("SizeOfOptionalHeader è zero.", 10)
 	}
 
-	if CoffHeader.SizeOfOptionalHeader > uint16(binary.Size(pe.COFFHeaderT{})) {
-		InsertAnomalyFileFormat("La dimensione della SizeOfOptionalHeader è particolare. Valore ottenuto: "+strconv.Itoa(int(CoffHeader.SizeOfOptionalHeader))+".", 10)
+	sizePrevista32bit := 4 + uint16(binary.Size(pe.PEOptionalHeaderT{})) + uint16(binary.Size(pe.ImageDataDirectory{})*16)
+	sizePrevista64bit := 4 + uint16(binary.Size(pe.PEPOptionalHeaderT{})) + uint16(binary.Size(pe.ImageDataDirectory{})*16)
+
+	if FileAnalyzed.PEInterface.Is64bit {
+		if CoffHeader.SizeOfOptionalHeader > sizePrevista64bit {
+			InsertAnomalyFileFormat("La dimensione della SizeOfOptionalHeader è particolare. Valore ottenuto: "+strconv.Itoa(int(CoffHeader.SizeOfOptionalHeader))+".", 10)
+		}
+	} else {
+		if CoffHeader.SizeOfOptionalHeader > sizePrevista32bit {
+			InsertAnomalyFileFormat("La dimensione della SizeOfOptionalHeader è particolare. Valore ottenuto: "+strconv.Itoa(int(CoffHeader.SizeOfOptionalHeader))+".", 10)
+		}
 	}
 
 }

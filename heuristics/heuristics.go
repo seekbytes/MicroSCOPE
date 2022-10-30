@@ -18,11 +18,10 @@ func Execute(analyzed *formats.FileAnalyzed) {
 
 	if analyzed.Format == "PE" {
 
-		var isDotNet bool
 		if len(analyzed.PEInterface.Imports) == 1 {
 			if analyzed.PEInterface.Imports[0].APICalled == "_CorExeMain" {
-				isDotNet = true
 				InsertAnomalyOthers("Il programma è un file eseguibile .NET.", 0)
+				CalculatePointsStringDOTNET(analyzed.ExtractedStrings)
 			}
 		}
 
@@ -30,12 +29,13 @@ func Execute(analyzed *formats.FileAnalyzed) {
 		// Euristica sulle intestazioni
 		CheckHeaders()
 		// Euristica sulle stringhe
-		CalculatePointsStringPE(analyzed.ExtractedStrings, isDotNet)
+		CalculatePointsStringPE(analyzed.ExtractedStrings)
 		// Euristica sugli imports
 		CalculatePointsImports(analyzed.PEInterface.Imports)
 		// Euristica sull'entropia
 		CalculatePointsEntropy(analyzed.PEInterface.Sections)
-
+		// Euristica sulle risorse
+		CalculatePointsResources(analyzed.PEInterface.Resource)
 		// Euristica sui binari signed/unsigned
 		CalculatePointsSecurity(analyzed.PEInterface.SecuritySection)
 	}

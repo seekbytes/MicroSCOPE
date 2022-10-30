@@ -1,7 +1,6 @@
 package pe
 
 import (
-	"bytes"
 	"crypto/x509"
 	"encoding/binary"
 	"fmt"
@@ -19,17 +18,16 @@ func readSecuritySection(virtualAddress uint32) {
 		return
 	}
 
-	offset := virtualAddress - section.VirtualAddress
+	//offset := virtualAddress - section.VirtualAddress
+	offset := virtualAddress
 	if offset < 0 {
 		fmt.Println("L'offset non può essere minore di 0.")
 		return
 	}
 
-	readerRaw := bytes.NewReader(section.Raw)
-
 	for {
-		_, err := readerRaw.Seek(int64(offset), io.SeekStart)
-
+		_, err := reader.Seek(int64(offset), io.SeekStart)
+		var reasonString string
 		if err != nil {
 			fmt.Println("Impossibile effettuare il seek per il seguente motivo: " + err.Error())
 			return
@@ -38,9 +36,9 @@ func readSecuritySection(virtualAddress uint32) {
 		// Parsa ogni certificato
 		var Certificate WinCertificate
 
-		err = binary.Read(readerRaw, binary.LittleEndian, &Certificate)
+		err = binary.Read(reader, binary.LittleEndian, &Certificate)
 		if err != nil {
-			fmt.Println("Impossibile leggere la struttura WinCertificate")
+			fmt.Println("Impossibile leggere la struttura WinCertificate per il seguente motivo: " + err.Error())
 			return
 		}
 
@@ -49,8 +47,10 @@ func readSecuritySection(virtualAddress uint32) {
 			return
 		}
 
-		certificateContent := make([]byte, Certificate.Length)
-		err = binary.Read(readerRaw, binary.LittleEndian, certificateContent)
+		fmt.Printf("%+v\n", Certificate)
+
+		certificateContent := make([]byte, Certificate.Length-uint32(binary.Size(WinCertificate{})))
+		err = binary.Read(reader, binary.LittleEndian, certificateContent)
 		if err != nil {
 			fmt.Println("Impossibile leggere il contenuto del certificato " + err.Error())
 			return
@@ -58,7 +58,9 @@ func readSecuritySection(virtualAddress uint32) {
 
 		pkcs, err := pkcs7.Parse(certificateContent)
 		if err != nil {
-			fmt.Println("Errore: il certificato non è valido")
+			reasonString = err.Error()
+			fmt.Println("Errore: il certificato non è valido: " + reasonString)
+			fileAnalyzed.SecuritySection = append(fileAnalyzed.SecuritySection, SecurityHeader{Header: Certificate, Content: pkcs, IsSigned: false, ReasonFail: reasonString})
 			return
 		}
 
@@ -71,13 +73,14 @@ func readSecuritySection(virtualAddress uint32) {
 		isValid := true
 		err = pkcs.VerifyWithChain(certPool)
 		if err != nil {
-			fmt.Println("Il certificato non è valido")
+			reasonString = err.Error()
+			fmt.Println("Il certificato non è valido: " + err.Error())
 			isValid = false
 		}
 
 		offset = Certificate.Length + offset
 		offset = offset + 8 - 1
-		fileAnalyzed.SecuritySection = append(fileAnalyzed.SecuritySection, SecurityHeader{Header: Certificate, Content: pkcs, IsSigned: isValid})
+		fileAnalyzed.SecuritySection = append(fileAnalyzed.SecuritySection, SecurityHeader{Header: Certificate, Content: pkcs, IsSigned: isValid, ReasonFail: reasonString})
 	}
 
 }

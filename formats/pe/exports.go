@@ -31,6 +31,12 @@ func readExports(virtualAddress uint32) {
 
 	if err != nil {
 		fmt.Println("Impossibile leggere la struttura exportDirectory " + err.Error())
+		return
+	}
+
+	if exportDirectory.NumberOfFunctions == 0 {
+		fmt.Println("Attenzione: numero di funzioni esportate uguale a 0")
+		return
 	}
 
 	namesTableRVA := exportDirectory.NameRva - section.VirtualAddress
@@ -39,11 +45,10 @@ func readExports(virtualAddress uint32) {
 
 	fileAnalyzed.ExportNameMap = make(map[string]*Export)
 	fileAnalyzed.ExportOrdinalMap = make(map[int]*Export)
-
+	fmt.Printf("%d \n", exportDirectory.NumberOfName)
 	// Per ogni entry della tabella degli exports
 	for i := 0; i < int(exportDirectory.NumberOfName); i++ {
 
-		//
 		_, err = reader.Seek(int64(namesTableRVA+uint32(i*4)), io.SeekStart)
 		if err != nil {
 			fmt.Println("Errore nel seek per la tabella delle funzioni esportate")
@@ -56,7 +61,7 @@ func readExports(virtualAddress uint32) {
 			fmt.Println("Impossibile leggere la struttura ExportAddressTable per il seguente motivo : " + err.Error())
 			return
 		}
-
+		fmt.Printf("%+v \n", exportAddressTable)
 		name := utils.ReadString(section.Raw[exportAddressTable.ExportRva-section.VirtualAddress:])
 		ordinal = binary.LittleEndian.Uint16(section.Raw[ordinalsTableRVA+uint32(i*2) : ordinalsTableRVA+uint32(i*2)+2])
 		_, err = reader.Seek(int64(uint32(ordinal)*4+exportDirectory.AddressOfFunctions-section.VirtualAddress), io.SeekStart)

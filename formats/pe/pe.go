@@ -226,7 +226,7 @@ func Analysis(PEStruct *PEBINARY, content []byte) {
 
 	// Se, all'interno del binario, la dimensione della sezione per l'export è diverso 0, procediamo con la lettura degli export
 	if DataDirectories[IMAGE_DIRECTORY_ENTRY_EXPORT].Size != 0 {
-		readExports(DataDirectories[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)
+		//readExports(DataDirectories[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress)
 	}
 
 	// Sezione Import
@@ -253,6 +253,7 @@ func Analysis(PEStruct *PEBINARY, content []byte) {
 			err = binary.Read(reader, binary.LittleEndian, &contenuto)
 			fileAnalyzed.Resource[i].Content = contenuto
 			fileAnalyzed.Resource[i].ContentType = utils.IdentifyFile(contenuto)
+			fileAnalyzed.Resource[i].Entropy = utils.CalculateEntropy(contenuto)
 			if fileAnalyzed.Resource[i].Name == "" {
 				fileAnalyzed.Resource[i].Name = PrintResource(fileAnalyzed.Resource[i].Type)
 			}

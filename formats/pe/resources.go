@@ -81,6 +81,7 @@ func readResourceDirectory(virtualAddress uint32) {
 			var single byte
 			// Lettura della stringa
 			for j := 0; j <= int(ResourceDir.Length)*2; j = j + 1 {
+				// Lettura della stringa byte per byte
 				err = binary.Read(reader, binary.LittleEndian, &single)
 				if err != nil {
 					fmt.Println("Impossibile leggere la struttura byte per il seguente motivo " + err.Error())
@@ -93,6 +94,7 @@ func readResourceDirectory(virtualAddress uint32) {
 			_, err = reader.Seek(seekPosition, io.SeekStart)
 			if err != nil {
 				fmt.Println("Impossibile riallineare l'offset allo stato iniziale per il seguente errore " + err.Error())
+				return
 			}
 		} else {
 			// PrintResource(int(ImgTmp.Name))
@@ -210,7 +212,7 @@ func readResourceDirectory(virtualAddress uint32) {
 						return
 					}
 
-					resourceTmpFrom := Resource{Name: string(tmpString), Type: int(ImgResDirEntry[i].Name), Offset: uint64(resourceTmp.Offset), Size: uint64(resourceTmp.Size), Content: nil}
+					resourceTmpFrom := Resource{Name: string(tmpString), Type: int(ImgResDirEntry[i].Name), Offset: uint64(resourceTmp.Offset), Size: uint64(resourceTmp.Size), Content: nil, TimedateStamp: resource.TimeDateStamp}
 					fileAnalyzed.Resource = append(fileAnalyzed.Resource, resourceTmpFrom)
 				}
 				_, err = reader.Seek(seekPosition, io.SeekStart)

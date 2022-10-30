@@ -18,6 +18,10 @@ func CalculatePointsResources(resources []pe.Resource) {
 		if resources[i].Size == 0 {
 			blank++
 		}
+
+		if resources[i].Entropy >= 6.6 {
+			InsertAnomalyOthers("Il binario contiene delle risorse offuscate", 20)
+		}
 	}
 
 	if binary > 0 {

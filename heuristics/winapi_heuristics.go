@@ -50,8 +50,13 @@ func CalculatePointsImports(Imports []*pe.ImportInfo) {
 	}
 
 	fileImports := map[string]int{
-		"FindFirstVolume": 10,
-		"FindNextVolume":  10,
+		"FindFirstVolume":          10,
+		"FindNextVolume":           10,
+		"GetLogicalDrives":         10,
+		"GetFileType":              20,
+		"GetCompressed":            20,
+		"FindFirstFile":            20,
+		"SetRenameInformationFile": 10,
 	}
 
 	ransomwareImports := map[string]int{
@@ -62,10 +67,9 @@ func CalculatePointsImports(Imports []*pe.ImportInfo) {
 		"CryptAcquireContext":      20,
 		"CryptDestroyKey":          20,
 		"CryptRelaseContext":       20,
+		"CryptStringToBinary":      20,
+		"CryptBinaryToString":      20,
 		"CryptGenKey":              20,
-		"GetFileType":              20,
-		"FindFirstFile":            20,
-		"SetRenameInformationFile": 10,
 		"FindNextFile":             10, // https://core.ac.uk/download/pdf/159235636.pdf
 		"SystemFunction036":        10, // funzione per generare un numero casuale, non abitualmente utilizzata (vedi RtlGenRandom)
 	}
@@ -118,10 +122,6 @@ func CalculatePointsImports(Imports []*pe.ImportInfo) {
 
 		if pointToAdd, isFound := gatheringImports[importName]; isFound {
 			InsertAnomalyImports("È stata trovata una funzione che acquisisce informazioni sui processi in uso o sull'environment: "+importName, pointToAdd)
-		}
-
-		if pointToAdd, isFound := securityImports[importName]; isFound {
-			InsertAnomalyImports("È stata trovata una funzione che acquisisce informazioni sul contesto di sicurezza per l'utente: "+importName, pointToAdd)
 		}
 
 		if pointToAdd, isFound := securityImports[importName]; isFound {

@@ -162,8 +162,8 @@ type Section struct {
 type ExportDirectory struct {
 	Characteristics       uint32 // In genere tutti zero per PE, campo riservato
 	TimeDateStamp         uint32 // data di creazione
-	MajorVersion          uint32 // Riservato: zero
-	MinorVersion          uint32 // Riservato: zero
+	MajorVersion          uint16 // Riservato: zero
+	MinorVersion          uint16 // Riservato: zero
 	NameRva               uint32 // RVA che punta al nome del modulo
 	OrdinalBase           uint32 // Numero che va sommato all'indice per ottenere l'ordinal della funzione
 	NumberOfFunctions     uint32 // Numero di funzioni esportate dal modulo
@@ -231,12 +231,14 @@ type ResourceDirString struct {
 }
 
 type Resource struct {
-	Name        string
-	Offset      uint64
-	Size        uint64
-	Content     []byte
-	Type        int
-	ContentType string
+	Name          string
+	Offset        uint64
+	Size          uint64
+	Content       []byte
+	Type          int
+	ContentType   string
+	TimedateStamp uint32
+	Entropy       float64
 }
 
 // CompID è una struttura che riporta le informazioni del compilatore all'interno del RichHeader.
@@ -322,9 +324,10 @@ type WinCertificate struct {
 }
 
 type SecurityHeader struct {
-	Header   WinCertificate
-	Content  *pkcs7.PKCS7
-	IsSigned bool
+	Header     WinCertificate
+	Content    *pkcs7.PKCS7
+	IsSigned   bool
+	ReasonFail string
 }
 
 // APISET

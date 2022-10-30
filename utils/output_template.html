@@ -605,6 +605,7 @@
                 <td>Size</td>
                 <td>Content Type</td>
                 <td>Resource Type</td>
+                <td>Timestamp</td>
             </tr>
             </thead>
             {{ range .PEInterface.Resource }}
@@ -614,6 +615,8 @@
                 <td>{{.Size}} bytes</td>
                 <td>{{.ContentType}}</td>
                 <td>{{.Type}}</td>
+                <td>{{.TimedateStamp}}</td>
+                <td>{{.Entropy}}</td>
             </tr>
             {{ end }}
         </table>
