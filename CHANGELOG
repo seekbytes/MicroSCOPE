@@ -1,5 +1,15 @@
 Versione 0.0.2-alpha:
 - Risolti fix
+- Aggiunte euristiche sul nome della sezione
+- Aggiunte euristiche per le risorse
+- Migliorate euristiche delle stringhe per ransomware
+- Aumentato threshold al valore 150
+- Risolto un problema sui valori di export
+- Aggiunto il campo Timestamp alla risorsa
+- Aggiunte euristiche per file .NET
+- Risolto problema di calcolo errato della dimensione dell'intestazione
+- Aggiunta conversione UUID/Path
+- Risolto problema degli apici all'interno del file TXT di output
 
 Versione 0.0.1-alpha:
 - Prima versione

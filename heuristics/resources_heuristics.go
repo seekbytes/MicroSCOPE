@@ -10,6 +10,9 @@ func CalculatePointsResources(resources []pe.Resource) {
 	// Quante risorse incontriamo vuote (dimensione 0)?
 	blank := 0
 
+	// Quante risorse sono state
+	entropy := 0
+
 	for i := 0; i < len(resources); i++ {
 		if resources[i].ContentType == "binary/pe" {
 			binary++
@@ -20,8 +23,12 @@ func CalculatePointsResources(resources []pe.Resource) {
 		}
 
 		if resources[i].Entropy >= 6.6 {
-			InsertAnomalyOthers("Il binario contiene delle risorse offuscate", 20)
+			entropy++
 		}
+	}
+
+	if entropy > 0 {
+		InsertAnomalyOthers("Il binario contiene delle risorse offuscate.", 20*entropy)
 	}
 
 	if binary > 0 {

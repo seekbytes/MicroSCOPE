@@ -100,36 +100,36 @@ func CalculatePointsImports(Imports []*pe.ImportInfo) {
 
 		// API per l'anti-debugging
 		if pointToAdd, isFound := antiDebuggingImports[importName]; isFound {
-			InsertAnomalyImports("È stata trovata una funzione che presenta caratteristiche anti-debugging: "+importName, pointToAdd)
+			InsertAnomalyImports("È stata trovata una funzione che presenta caratteristiche anti-debugging: \""+importName+"\".", pointToAdd)
 		}
 
 		// API che reperiscono informazioni senza che l'utente se ne accorga
 		if pointToAdd, isFound := stealthImports[importName]; isFound {
-			InsertAnomalyImports("È stata trovata una funzione che reperisce informazioni sul sistema: "+importName, pointToAdd)
+			InsertAnomalyImports("È stata trovata una funzione che reperisce informazioni sul sistema: \""+importName+"\".", pointToAdd)
 		}
 
 		if pointToAdd, isFound := ransomwareImports[importName]; isFound {
-			InsertAnomalyImports("È stata trovata una funzione compatibile con il comportamento di un ransomware: "+importName, pointToAdd)
+			InsertAnomalyImports("È stata trovata una funzione compatibile con il comportamento di un ransomware: \""+importName+"\".", pointToAdd)
 		}
 
 		if pointToAdd, isFound := queueIOImports[importName]; isFound {
-			InsertAnomalyImports("È stata trovata una funzione che modifica la coda dei dispositivi I/O: "+importName, pointToAdd)
+			InsertAnomalyImports("È stata trovata una funzione che modifica la coda dei dispositivi I/O: \""+importName+"\".", pointToAdd)
 		}
 
 		if pointToAdd, isFound := networkImports[importName]; isFound {
-			InsertAnomalyImports("È stata trovata una funzione che utilizza la rete: "+importName, pointToAdd)
+			InsertAnomalyImports("È stata trovata una funzione che utilizza la rete: "+importName+"\".", pointToAdd)
 		}
 
 		if pointToAdd, isFound := gatheringImports[importName]; isFound {
-			InsertAnomalyImports("È stata trovata una funzione che acquisisce informazioni sui processi in uso o sull'environment: "+importName, pointToAdd)
+			InsertAnomalyImports("È stata trovata una funzione che acquisisce informazioni sui processi in uso o sull'environment: \""+importName+"\".", pointToAdd)
 		}
 
 		if pointToAdd, isFound := securityImports[importName]; isFound {
-			InsertAnomalyImports("È stata trovata una funzione che acquisisce informazioni sul contesto di sicurezza per l'utente: \""+importName+"\"", pointToAdd)
+			InsertAnomalyImports("È stata trovata una funzione che acquisisce informazioni sul contesto di sicurezza per l'utente: \""+importName+"\".", pointToAdd)
 		}
 
 		if pointToAdd, isFound := fileImports[importName]; isFound {
-			InsertAnomalyImports("È stata trovata una funzione che acquisisce informazioni sui dispositivi di memoria secondaria: \""+importName+"\"", pointToAdd)
+			InsertAnomalyImports("È stata trovata una funzione che acquisisce informazioni sui dispositivi di memoria secondaria: \""+importName+"\".", pointToAdd)
 		}
 
 	}

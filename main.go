@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	VERSION = "0.0.1-alpha"
+	VERSION = "0.0.2-alpha"
 )
 
 //go:embed utils/output_template.html
@@ -48,7 +48,7 @@ func main() {
 	// Flag da passare a linea di comando
 	defaultFileName := ""
 	flag.StringVar(&fileName, "f", defaultFileName, "Specifica il nome del file che si vuole analizzare.")
-	flag.IntVar(&threshold, "t", 100, "Specifica il punteggio minimo sopra cui identificare un file malevolo")
+	flag.IntVar(&threshold, "t", 150, "Specifica il punteggio minimo sopra cui identificare un file malevolo")
 	flag.IntVar(&dimensionsLimit, "limit", 1<<32, "Specifica la dimensione massima del file binario da analizzare")
 	flag.StringVar(&format, "o", "html", "Specifica il formato del file di output dell'analisi (valori possibili html oppure txt)")
 	flag.Parse()

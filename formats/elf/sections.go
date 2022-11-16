@@ -161,7 +161,7 @@ func parseSectionHeaders32(endianness binary.ByteOrder, numberSections uint16, o
 		}
 		err = binary.Read(reader, endianness, sectionsHeaders[i])
 		if err != nil {
-			fmt.Println("Impossibile leggere il SectionHeader")
+			fmt.Println("Impossibile leggere il SectionHeader " + err.Error())
 			return nil
 		}
 	}

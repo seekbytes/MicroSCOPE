@@ -18,7 +18,7 @@ func CalculatePointsEntropy(sections interface{}) int {
 
 		for i := 0; i < len(sectionsIterable); i++ {
 
-			if sectionsIterable[i].Name == ".text" {
+			if sectionsIterable[i].Name == ".text" || sectionsIterable[i].Name == "CODE" {
 				isTextSectionFound = true
 			}
 
@@ -28,7 +28,7 @@ func CalculatePointsEntropy(sections interface{}) int {
 				if sectionsIterable[i].Name == ".text" {
 					InsertAnomalySection("Le istruzioni sono offuscate.", 120)
 				} else {
-					InsertAnomalySection("La sezione "+sectionsIterable[i].Name+" è offuscata.", 20)
+					InsertAnomalySection("La sezione \""+sectionsIterable[i].Name+"\" è offuscata.", 20)
 				}
 			}
 
@@ -42,15 +42,15 @@ func CalculatePointsEntropy(sections interface{}) int {
 
 			//
 			if sectionsIterable[i].SizeOfRawData == 0 && sectionsIterable[i].VirtualSize == 0 {
-				InsertAnomalySection("La sezione "+sectionsIterable[i].Name+" ha dimensione fisica e virtuale pari a 0.", 20)
+				InsertAnomalySection("La sezione \""+sectionsIterable[i].Name+"\" ha dimensione fisica e virtuale pari a 0.", 20)
 			}
 
 			if sectionsIterable[i].SizeOfRawData-sectionsIterable[i].VirtualSize > 40000 {
-				InsertAnomalySection("La sezione "+sectionsIterable[i].Name+" ha una discrepanza importante tra la dimensione dichiarata e la dimensione virtuale.", 10)
+				InsertAnomalySection("La sezione \""+sectionsIterable[i].Name+"\" ha una discrepanza importante tra la dimensione dichiarata e la dimensione virtuale.", 10)
 			}
 
 			if sectionsIterable[i].VirtualSize == 0 {
-				InsertAnomalySection("La sezione "+sectionsIterable[i].Name+" ha una dimensione virtuale pari a 0.", 20)
+				InsertAnomalySection("La sezione \""+sectionsIterable[i].Name+"\" ha una dimensione virtuale pari a 0.", 20)
 			}
 		}
 
@@ -71,7 +71,7 @@ func CalculatePointsEntropy(sections interface{}) int {
 				if sectionsIterable[i].Name == ".text" {
 					InsertAnomalySection("Le istruzioni sono offuscate.", 120)
 				} else {
-					InsertAnomalySection("La sezione "+sectionsIterable[i].Name+" è offuscata.", 20)
+					InsertAnomalySection("La sezione \""+sectionsIterable[i].Name+"\" è offuscata.", 20)
 				}
 			}
 
@@ -88,7 +88,7 @@ func CalculatePointsEntropy(sections interface{}) int {
 				if sectionsIterable[i].Name == ".text" {
 					InsertAnomalySection("Le istruzioni sono offuscate.", 120)
 				} else {
-					InsertAnomalySection("La sezione "+sectionsIterable[i].Name+" è offuscata.", 20)
+					InsertAnomalySection("La sezione \""+sectionsIterable[i].Name+"\" è offuscata.", 20)
 				}
 			}
 
@@ -128,6 +128,24 @@ func checkSectionName(name string, isElf bool) {
 			".gnu.hash",
 			".gnu.version",
 			".gnu.version_r",
+			".rela.dyn",
+			".rela.plt",
+			".init",
+			".plt",
+			".text",
+			".fini",
+			".rodata",
+			".eh_frame_hdr",
+			".eh_frame",
+			".tbss",
+			".ctors",
+			".dtors",
+			".dynamic",
+			".got.plt",
+			".data",
+			".bss",
+			".comment",
+			".shstrtab",
 		}
 		defaultSectionName = defaultSectionsName
 	} else {
@@ -143,22 +161,31 @@ func checkSectionName(name string, isElf bool) {
 			".pdata",
 			".reloc",
 			".symtab",
+			".tls",
+			".eh_fram",
+			".imrsiv",
+			".CRT",
+			"CODE",
+			"BSS",
+			"DATA",
+			".didat",
+			".gfids",
 		}
 		defaultSectionName = defaultSectionsName
 	}
 
-	// Conta quante sezioni sono valide, se esistono meno di 1 sezione valida allora inserisci l'anomalia
 	isFound := false
 	for i := 0; i < len(defaultSectionName); i++ {
 		if name == defaultSectionName[i] {
 			isFound = true
+			// Conta quante sezioni sono valide, se esistono meno di 1 sezione valida allora inserisci l'anomalia
 			sectionsStandards++
 			break
 		}
 	}
 
 	if !isFound {
-		InsertAnomalySection("La sezione \""+name+"\" non è standard.", 10)
+		InsertAnomalySection("La sezione \""+name+"\" non è una sezione standard.", 10)
 	}
 
 }

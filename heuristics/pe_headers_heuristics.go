@@ -34,12 +34,16 @@ func CheckHeaders() {
 	}
 
 	CheckImageDataDirectories(dataDirectories, int(NumberOfRvaAndSizes))
+	var MajorVersionWin uint16
 	if FileAnalyzed.PEInterface.Is64bit {
 		CheckOptionalHeader(optionalHeader64)
+		MajorVersionWin = optionalHeader64.MajorOperatingSystemVersion
 	} else {
 		CheckOptionalHeader32(optionalHeader32)
+		MajorVersionWin = optionalHeader32.MajorOperatingSystemVersion
+
 	}
-	CheckCOFFHeader(&FileAnalyzed.PEInterface.COFFHeader)
+	CheckCOFFHeader(&FileAnalyzed.PEInterface.COFFHeader, MajorVersionWin)
 
 	// Controllo checksum
 	ExpectedChecksum := CalculateChecksum(FileAnalyzed.PEInterface.DosHeader.AddressExeOffset, uint32(len(FileAnalyzed.Raw)), FileAnalyzed.Raw)
@@ -161,7 +165,7 @@ func CheckOptionalHeader(header pe.PEPOptionalHeaderT) {
 
 }
 
-func CheckCOFFHeader(CoffHeader *pe.COFFHeaderT) {
+func CheckCOFFHeader(CoffHeader *pe.COFFHeaderT, MajorOperatingSystemVersion uint16) {
 	// Controlla il COFFHeader
 
 	// Numero di sezioni è un intero positivo minore di 96
@@ -203,6 +207,7 @@ func CheckCOFFHeader(CoffHeader *pe.COFFHeaderT) {
 
 	// Controlla se un timestamp è futuro
 	if unixTime.After(time.Now()) {
+		// if unixTime.After(time.Now()) && MajorOperatingSystemVersion < 10
 		unixTimeStr := fmt.Sprintf("%v", unixTime)
 		InsertAnomalyFileFormat("Il timestamp del programma punta al futuro: "+unixTimeStr, 10)
 	}

@@ -31,7 +31,11 @@ func CheckELFHeader() {
 		}
 
 		if len(sections) < int(elfHeader32.SectionEntryNumbers) {
-			InsertAnomalyFileFormat("Non possono esserci sezioni \"nascoste\" ", 40)
+			InsertAnomalyFileFormat("Il numero di sezioni non combacia con il numero di sezioni trovate all'interno dell'intestazione. ", 40)
+		}
+
+		if len(sections) == 0 {
+			InsertAnomalyFileFormat("Il binario non contiene alcuna sezione.", 20)
 		}
 
 	} else {
@@ -45,9 +49,14 @@ func CheckELFHeader() {
 			return
 		}
 
-		if len(sections) < int(elfHeader32.SectionEntryNumbers) {
-			InsertAnomalyFileFormat("Non possono esserci sezioni \"nascoste\" ", 40)
+		if len(sections) < int(elfHeader64.SectionEntryNumbers) {
+			InsertAnomalyFileFormat("Il numero di sezioni non combacia con il numero di sezioni trovate all'interno dell'intestazione. ", 40)
 		}
+
+		if len(sections) == 0 {
+			InsertAnomalyFileFormat("Il binario non contiene alcuna sezione.", 20)
+		}
+
 	}
 
 }
