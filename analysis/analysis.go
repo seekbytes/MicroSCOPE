@@ -36,6 +36,7 @@ func PrintResult(Analyzed *formats.FileAnalyzed) {
 		"PEprintResource":              pe.PrintResource,
 		"PEprintSubsystem":             pe.PrintSubsystem,
 		"PEprintMajorOperatingVersion": pe.PrintMajorOperatingSystemVersion,
+		"PEprintSectionFlags":          pe.PrintSectionFlags,
 		"PEprintCharacteristics":       pe.PrintCharacteristic,
 		"ELFprintMachine":              elf.PrintMachine,
 		"ELFprintSectionType":          elf.PrintSectionType,

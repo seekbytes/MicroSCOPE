@@ -53,7 +53,7 @@ func readApiSet() {
 			// Sposta l'offset
 			_, err = readerApiSet.Seek(int64(int(header.NamesOffset)+binary.Size(ApiSetNameEntry{})*i), io.SeekStart)
 			if err != nil {
-				fmt.Println("Impossibile spostare il seek.")
+				fmt.Println("Impossibile spostare il seek " + err.Error())
 				return
 			}
 
@@ -70,7 +70,7 @@ func readApiSet() {
 			for i := 0; i < int(tmp.NumberOfHosts); i++ {
 				_, err = readerApiSet.Seek(int64(tmp.HostOffset)+int64(i*(binary.Size(ApiSetValueEntry{}))), io.SeekStart)
 				if err != nil {
-					fmt.Println("Impossibile effettuare il seek")
+					fmt.Println("Impossibile effettuare il seek" + err.Error())
 					return
 				}
 				var tmpEntry ApiSetValueEntry

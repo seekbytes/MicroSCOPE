@@ -22,7 +22,7 @@ func CalculatePointsResources(resources []pe.Resource) {
 			blank++
 		}
 
-		if resources[i].Entropy >= 6.6 {
+		if resources[i].Entropy >= 6.6 && resources[i].ContentType != "image/png" {
 			entropy++
 		}
 	}

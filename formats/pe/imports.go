@@ -119,8 +119,7 @@ func readImports(is64bit bool, virtualAddress uint32) {
 
 			}
 
-			importElement := &ImportInfo{DllName: dllName, APICalled: funcName, Offset: tableOffset}
-
+			importElement := &ImportInfo{DllName: dllName, APICalled: funcName, Offset: tableOffset, Thunk: thunk1}
 			fileAnalyzed.Imports = append(fileAnalyzed.Imports, importElement)
 
 			// Continua il ciclo aggiungendo il padding

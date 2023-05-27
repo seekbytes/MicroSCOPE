@@ -244,16 +244,22 @@ func Analysis(PEStruct *PEBINARY, content []byte) {
 		// per ogni risorsa trovata vado a fare il seek e leggere n byte da scrivere su un file esterno
 		for i := 0; i < len(fileAnalyzed.Resource); i++ {
 			offset := int64(fileAnalyzed.Resource[i].Offset) - int64(DataDirectories[IMAGE_DIRECTORY_ENTRY_RESOURCE].VirtualAddress) + int64(section.PointerToRawData)
+			if offset < 0 {
+				offset = int64(getOffsetFromVirtualAddress(fileAnalyzed.Resource[i].Offset))
+			}
+			// TODO: con alcuni binari questo elemento fallisce
 			_, err = reader.Seek(offset, io.SeekStart)
 			if err != nil {
-				fmt.Println("Impossibile spostare il seek.")
-				return
+				fmt.Println("Impossibile spostare il seek per il seguente motivo:" + err.Error())
+				fileAnalyzed.Resource[i].Content = []byte("Errore")
+			} else {
+				contenuto := make([]byte, fileAnalyzed.Resource[i].Size)
+				err = binary.Read(reader, binary.LittleEndian, &contenuto)
+				fileAnalyzed.Resource[i].Content = contenuto
+				fileAnalyzed.Resource[i].ContentType = utils.IdentifyFile(contenuto)
+				fileAnalyzed.Resource[i].Entropy = utils.CalculateEntropy(contenuto)
 			}
-			contenuto := make([]byte, fileAnalyzed.Resource[i].Size)
-			err = binary.Read(reader, binary.LittleEndian, &contenuto)
-			fileAnalyzed.Resource[i].Content = contenuto
-			fileAnalyzed.Resource[i].ContentType = utils.IdentifyFile(contenuto)
-			fileAnalyzed.Resource[i].Entropy = utils.CalculateEntropy(contenuto)
+
 			if fileAnalyzed.Resource[i].Name == "" {
 				fileAnalyzed.Resource[i].Name = PrintResource(fileAnalyzed.Resource[i].Type)
 			}
@@ -301,8 +307,8 @@ func Analysis(PEStruct *PEBINARY, content []byte) {
 	// RichHeader
 	readRichHeader()
 
-	// estrazione stringhe
-	ReadSymbolTable()
+	// Estrazione stringhe
+	readSymbolTable()
 }
 
 type FixedVersionInfo struct {
@@ -342,6 +348,17 @@ func parseVersionInfo(contenuto []byte) {
 		fmt.Println("Impossibile leggere il contenuto di versioninfo")
 		return
 	}
+}
+
+func getOffsetFromVirtualAddress(VirtualAddress uint64) uint64 {
+	for i := 0; i < int(fileAnalyzed.COFFHeader.NumberOfSections); i++ {
+		vaBegin := fileAnalyzed.Sections[i].VirtualAddress
+		vaEnd := fileAnalyzed.Sections[i].SizeOfRawData + vaBegin
+		if uint64(vaBegin) <= VirtualAddress && uint64(vaEnd) > VirtualAddress {
+			return VirtualAddress - uint64(fileAnalyzed.Sections[i].VirtualAddress) - uint64(fileAnalyzed.Sections[i].PointerToRawData)
+		}
+	}
+	return 0
 }
 
 func getSectionFromVirtualAddress(VirtualAddress uint64) *Section {

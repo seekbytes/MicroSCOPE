@@ -1,5 +1,7 @@
 package pe
 
+import "strings"
+
 const (
 	MAGIC_MSDOS    = 0x5a4d
 	MAGIC_PE       = 0x4550
@@ -62,6 +64,7 @@ const (
 )
 
 const (
+	RT_UNKNOWN        = 0
 	RT_CURSOR         = 1
 	RT_BITMAP         = 2
 	RT_ICON           = 3
@@ -78,6 +81,7 @@ const (
 	RT_VERSION        = 16
 	RT_INCLUDE_DIALOG = 17
 	RT_PLUG_PLAY      = 19
+	RT_VXD            = 20
 	RT_ANT_CURSOR     = 21
 	RT_ANT_ICON       = 22
 	RT_HTML_PAGES     = 23
@@ -105,47 +109,47 @@ const (
 
 // Flags Section
 const (
-	IMAGE_SECTIONFLAGS_RESERVED_0    = 0x00000000
-	IMAGE_SECTIONFLAGS_RESERVED_1    = 0x00000001
-	IMAGE_SECTIONFLAGS_RESERVED_2    = 0x00000002
-	IMAGE_SECTIONFLAGS_RESERVED_4    = 0x00000004
-	IMAGE_SCN_TYPE_NO_PAD            = 0x00000008
-	IMAGE_SECTIONFLAGS_RESERVED_10   = 0x00000010 // Reserved for future use.
-	IMAGE_SCN_CNT_CODE               = 0x00000020 // The section contains executable code.
-	IMAGE_SCN_CNT_INITIALIZED_DATA   = 0x00000040 // The section contains initialized data.
-	IMAGE_SCN_CNT_UNINITIALIZED_DATA = 0x00000080 // The section contains uninitialized data.
-	IMAGE_SCN_LNK_OTHER              = 0x00000100 // Reserved for future use.
-	IMAGE_SCN_LNK_INFO               = 0x00000200 // The section contains comments or other information. The .drectve section has this type. This is valid for object files only.
-	IMAGE_SECTIONFLAGS_RESERVED_400  = 0x00000400 // Reserved for future use.
-	IMAGE_SCN_LNK_REMOVE             = 0x00000800 // The section will not become part of the image. This is valid only for object files.
-	IMAGE_SCN_LNK_COMDAT             = 0x00001000 // The section contains COMDAT data. For more information, see COMDAT Sections (Object Only). This is valid only for object files.
-	IMAGE_SCN_GPREL                  = 0x00008000 // The section contains data referenced through the global pointer (GP).
-	IMAGE_SCN_MEM_PURGEABLE          = 0x00020000 // Reserved for future use.
-	IMAGE_SCN_MEM_16BIT              = 0x00020000 // Reserved for future use.
-	IMAGE_SCN_MEM_LOCKED             = 0x00040000 // Reserved for future use.
-	IMAGE_SCN_MEM_PRELOAD            = 0x00080000 // Reserved for future use.
-	IMAGE_SCN_ALIGN_1BYTES           = 0x00100000 // Align data on a 1-byte boundary. Valid only for object files.
-	IMAGE_SCN_ALIGN_2BYTES           = 0x00200000 // Align data on a 2-byte boundary. Valid only for object files.
-	IMAGE_SCN_ALIGN_4BYTES           = 0x00300000 // Align data on a 4-byte boundary. Valid only for object files.
-	IMAGE_SCN_ALIGN_8BYTES           = 0x00400000 // Align data on an 8-byte boundary. Valid only for object files.
-	IMAGE_SCN_ALIGN_16BYTES          = 0x00500000 // Align data on a 16-byte boundary. Valid only for object files.
-	IMAGE_SCN_ALIGN_32BYTES          = 0x00600000 // Align data on a 32-byte boundary. Valid only for object files.
-	IMAGE_SCN_ALIGN_64BYTES          = 0x00700000 // Align data on a 64-byte boundary. Valid only for object files.
-	IMAGE_SCN_ALIGN_128BYTES         = 0x00800000 // Align data on a 128-byte boundary. Valid only for object files.
-	IMAGE_SCN_ALIGN_256BYTES         = 0x00900000 // Align data on a 256-byte boundary. Valid only for object files.
-	IMAGE_SCN_ALIGN_512BYTES         = 0x00A00000 // Align data on a 512-byte boundary. Valid only for object files.
-	IMAGE_SCN_ALIGN_1024BYTES        = 0x00B00000 // Align data on a 1024-byte boundary. Valid only for object files.
-	IMAGE_SCN_ALIGN_2048BYTES        = 0x00C00000 // Align data on a 2048-byte boundary. Valid only for object files.
-	IMAGE_SCN_ALIGN_4096BYTES        = 0x00D00000 // Align data on a 4096-byte boundary. Valid only for object files.
-	IMAGE_SCN_ALIGN_8192BYTES        = 0x00E00000 // Align data on an 8192-byte boundary. Valid only for object files.
-	IMAGE_SCN_LNK_NRELOC_OVFL        = 0x01000000 // The section contains extended relocations.
-	IMAGE_SCN_MEM_DISCARDABLE        = 0x02000000 // The section can be discarded as needed.
-	IMAGE_SCN_MEM_NOT_CACHED         = 0x04000000 // The section cannot be cached.
-	IMAGE_SCN_MEM_NOT_PAGED          = 0x08000000 // The section is not pageable.
-	IMAGE_SCN_MEM_SHARED             = 0x10000000 // The section can be shared in memory.
-	IMAGE_SCN_MEM_EXECUTE            = 0x20000000 // The section can be executed as code.
-	IMAGE_SCN_MEM_READ               = 0x40000000 // The section can be read.
-	IMAGE_SCN_MEM_WRITE              = 0x80000000 // The section can be written to.
+	IMAGE_SECTIONFLAGS_RESERVED_0           = 0x00000000
+	IMAGE_SECTIONFLAGS_RESERVED_1           = 0x00000001
+	IMAGE_SECTIONFLAGS_RESERVED_2           = 0x00000002
+	IMAGE_SECTIONFLAGS_RESERVED_4           = 0x00000004
+	IMAGE_SECTIONFLAGS_TYPE_NO_PAD          = 0x00000008
+	IMAGE_SECTIONFLAGS_RESERVED_10          = 0x00000010 // Reserved for future use.
+	IMAGE_SECTIONFLAGS_CNT_CODE             = 0x00000020 // The section contains executable code.
+	IMAGE_SECTIONFLAGS_CNT_INITIALIZED_DATA = 0x00000040 // The section contains initialized data.
+	IMAGE_SCN_CNT_UNINITIALIZED_DATA        = 0x00000080 // The section contains uninitialized data.
+	IMAGE_SCN_LNK_OTHER                     = 0x00000100 // Reserved for future use.
+	IMAGE_SCN_LNK_INFO                      = 0x00000200 // The section contains comments or other information. The .drectve section has this type. This is valid for object files only.
+	IMAGE_SECTIONFLAGS_RESERVED_400         = 0x00000400 // Reserved for future use.
+	IMAGE_SCN_LNK_REMOVE                    = 0x00000800 // The section will not become part of the image. This is valid only for object files.
+	IMAGE_SCN_LNK_COMDAT                    = 0x00001000 // The section contains COMDAT data. For more information, see COMDAT Sections (Object Only). This is valid only for object files.
+	IMAGE_SCN_GPREL                         = 0x00008000 // The section contains data referenced through the global pointer (GP).
+	IMAGE_SCN_MEM_PURGEABLE                 = 0x00020000 // Reserved for future use.
+	IMAGE_SCN_MEM_16BIT                     = 0x00020000 // Reserved for future use.
+	IMAGE_SCN_MEM_LOCKED                    = 0x00040000 // Reserved for future use.
+	IMAGE_SCN_MEM_PRELOAD                   = 0x00080000 // Reserved for future use.
+	IMAGE_SCN_ALIGN_1BYTES                  = 0x00100000 // Align data on a 1-byte boundary. Valid only for object files.
+	IMAGE_SCN_ALIGN_2BYTES                  = 0x00200000 // Align data on a 2-byte boundary. Valid only for object files.
+	IMAGE_SCN_ALIGN_4BYTES                  = 0x00300000 // Align data on a 4-byte boundary. Valid only for object files.
+	IMAGE_SCN_ALIGN_8BYTES                  = 0x00400000 // Align data on an 8-byte boundary. Valid only for object files.
+	IMAGE_SCN_ALIGN_16BYTES                 = 0x00500000 // Align data on a 16-byte boundary. Valid only for object files.
+	IMAGE_SCN_ALIGN_32BYTES                 = 0x00600000 // Align data on a 32-byte boundary. Valid only for object files.
+	IMAGE_SCN_ALIGN_64BYTES                 = 0x00700000 // Align data on a 64-byte boundary. Valid only for object files.
+	IMAGE_SCN_ALIGN_128BYTES                = 0x00800000 // Align data on a 128-byte boundary. Valid only for object files.
+	IMAGE_SCN_ALIGN_256BYTES                = 0x00900000 // Align data on a 256-byte boundary. Valid only for object files.
+	IMAGE_SCN_ALIGN_512BYTES                = 0x00A00000 // Align data on a 512-byte boundary. Valid only for object files.
+	IMAGE_SCN_ALIGN_1024BYTES               = 0x00B00000 // Align data on a 1024-byte boundary. Valid only for object files.
+	IMAGE_SCN_ALIGN_2048BYTES               = 0x00C00000 // Align data on a 2048-byte boundary. Valid only for object files.
+	IMAGE_SCN_ALIGN_4096BYTES               = 0x00D00000 // Align data on a 4096-byte boundary. Valid only for object files.
+	IMAGE_SCN_ALIGN_8192BYTES               = 0x00E00000 // Align data on an 8192-byte boundary. Valid only for object files.
+	IMAGE_SCN_LNK_NRELOC_OVFL               = 0x01000000 // The section contains extended relocations.
+	IMAGE_SCN_MEM_DISCARDABLE               = 0x02000000 // The section can be discarded as needed.
+	IMAGE_SCN_MEM_NOT_CACHED                = 0x04000000 // The section cannot be cached.
+	IMAGE_SCN_MEM_NOT_PAGED                 = 0x08000000 // The section is not pageable.
+	IMAGE_SECTIONFLAGS_MEM_SHARED           = 0x10000000 // The section can be shared in memory.
+	IMAGE_SCN_MEM_EXECUTE                   = 0x20000000 // The section can be executed as code.
+	IMAGE_SCN_MEM_READ                      = 0x40000000 // The section can be read.
+	IMAGE_SCN_MEM_WRITE                     = 0x80000000 // The section can be written to.
 )
 
 // DataDirectories
@@ -366,6 +370,45 @@ func PrintCharacteristic(constant int) string {
 		return "Terminal Server aware"
 	}
 	return ""
+}
+
+func PrintSectionFlags(flags uint32) string {
+	var result []string
+
+	if (IMAGE_SECTIONFLAGS_RESERVED_1 & flags) == IMAGE_SECTIONFLAGS_RESERVED_1 {
+		result = append(result, "Reserved for future use2")
+	}
+	if (IMAGE_SECTIONFLAGS_RESERVED_4 & flags) == IMAGE_SECTIONFLAGS_RESERVED_4 {
+		result = append(result, "Reserved for future use3")
+	}
+	if (IMAGE_SECTIONFLAGS_RESERVED_10 & flags) == IMAGE_SECTIONFLAGS_RESERVED_10 {
+		result = append(result, "Reserved for future use4")
+	}
+	if (IMAGE_SECTIONFLAGS_RESERVED_400 & flags) == IMAGE_SECTIONFLAGS_RESERVED_400 {
+		result = append(result, "Reserved for future use5")
+	}
+
+	if (IMAGE_SECTIONFLAGS_CNT_CODE & flags) == IMAGE_SECTIONFLAGS_CNT_CODE {
+		result = append(result, "CODE")
+	}
+
+	if (IMAGE_SECTIONFLAGS_CNT_INITIALIZED_DATA & flags) == IMAGE_SECTIONFLAGS_CNT_INITIALIZED_DATA {
+		result = append(result, "INITIALIZED DATA")
+	}
+
+	if (IMAGE_SCN_MEM_EXECUTE & flags) == IMAGE_SCN_MEM_EXECUTE {
+		result = append(result, "EXECUTE")
+	}
+
+	if (IMAGE_SCN_MEM_READ & flags) == IMAGE_SCN_MEM_READ {
+		result = append(result, "READ")
+	}
+
+	if (IMAGE_SCN_MEM_WRITE & flags) == IMAGE_SCN_MEM_WRITE {
+		result = append(result, "WRITE")
+	}
+
+	return strings.Join(result, ", ")
 }
 
 func PrintResource(constant int) string {

@@ -14,9 +14,10 @@ type FileAnalyzed struct {
 	ExtractedStrings []string      // Stringhe estratte
 	Anomalies        []Anomaly     // Anomalie
 	Hash             string        // Hash 256
-	OutputFormat     string        // Formato del file di output dell'analisi
+	OutputFormat     string        // Formato del file prodotto dall'analisi
 	PEInterface      pe.PEBINARY   // Puntatore al PEbinary se il formato è PE
 	ELFInterface     elf.ELFBINARY // Puntatore all'elfbinary se il formato è ELF
+	Instructions     []string      // Istruzioni
 	Threshold        int           // Threshold
 	Raw              []byte
 }

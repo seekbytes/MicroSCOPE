@@ -415,7 +415,7 @@ func CalculatePointsStringPE(extractedStrings []string) {
 			}
 		}
 
-		for stringToCompare, _ := range processes {
+		for stringToCompare := range processes {
 			if strings.Contains(extractedStrings[i], stringToCompare) {
 				processiUsed = append(processiUsed, stringToCompare)
 			}

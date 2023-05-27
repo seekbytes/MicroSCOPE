@@ -45,7 +45,7 @@ func readExports(virtualAddress uint32) {
 
 	fileAnalyzed.ExportNameMap = make(map[string]*Export)
 	fileAnalyzed.ExportOrdinalMap = make(map[int]*Export)
-	fmt.Printf("%d \n", exportDirectory.NumberOfName)
+
 	// Per ogni entry della tabella degli exports
 	for i := 0; i < int(exportDirectory.NumberOfName); i++ {
 

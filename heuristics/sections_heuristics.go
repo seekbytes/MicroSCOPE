@@ -23,6 +23,7 @@ func CalculatePointsEntropy(sections interface{}) int {
 			}
 
 			checkSectionName(sectionsIterable[i].Name, false)
+			checkSectionFlags(sectionsIterable[i].Name, sectionsIterable[i].Characteristics)
 
 			if sectionsIterable[i].Entropy > 6.5 {
 				if sectionsIterable[i].Name == ".text" {
@@ -45,12 +46,18 @@ func CalculatePointsEntropy(sections interface{}) int {
 				InsertAnomalySection("La sezione \""+sectionsIterable[i].Name+"\" ha dimensione fisica e virtuale pari a 0.", 20)
 			}
 
-			if sectionsIterable[i].SizeOfRawData-sectionsIterable[i].VirtualSize > 40000 {
-				InsertAnomalySection("La sezione \""+sectionsIterable[i].Name+"\" ha una discrepanza importante tra la dimensione dichiarata e la dimensione virtuale.", 10)
+			if sectionsIterable[i].SizeOfRawData != 0 {
+				if sectionsIterable[i].SizeOfRawData-sectionsIterable[i].VirtualSize > 40000 {
+					InsertAnomalySection("La sezione \""+sectionsIterable[i].Name+"\" ha una discrepanza importante tra la dimensione dichiarata e la dimensione virtuale.", 10)
+				}
 			}
 
 			if sectionsIterable[i].VirtualSize == 0 {
 				InsertAnomalySection("La sezione \""+sectionsIterable[i].Name+"\" ha una dimensione virtuale pari a 0.", 20)
+			}
+
+			if sectionsIterable[i].VirtualSize > 0x10000000 {
+				InsertAnomalySection("La sezione \""+sectionsIterable[i].Name+"\" ha una dimensione virtuale superiore a 256 Mb", 20)
 			}
 		}
 
@@ -102,6 +109,52 @@ func CalculatePointsEntropy(sections interface{}) int {
 		}
 	}
 	return points
+}
+
+func checkSectionFlags(name string, flags uint32) {
+	// Per ora solo per PE :)
+	// TODO: Implementare flags anche per unix
+	if name == ".text" {
+
+		if flags&pe.IMAGE_SCN_MEM_EXECUTE != pe.IMAGE_SCN_MEM_EXECUTE {
+			InsertAnomalySection("La sezione "+name+" non presenta la flag per l'esecuzione.", 40)
+		}
+
+		if flags&pe.IMAGE_SCN_MEM_WRITE == pe.IMAGE_SCN_MEM_WRITE {
+			InsertAnomalySection("La sezione "+name+" presenta la flag per la scrittura. Codice automodificante?", 40)
+		}
+	}
+
+	if name == ".rdata" {
+		if flags&pe.IMAGE_SCN_MEM_WRITE == pe.IMAGE_SCN_MEM_WRITE {
+			InsertAnomalySection("La sezione "+name+" presenta la flag per la scrittura. Codice automodificante?", 40)
+		}
+		if flags&pe.IMAGE_SCN_MEM_EXECUTE == pe.IMAGE_SCN_MEM_EXECUTE {
+			InsertAnomalySection("La sezione "+name+"presenta la flag per l'esecuzione.", 40)
+		}
+
+		return
+	}
+
+	if name == ".idata" {
+		if flags&pe.IMAGE_SCN_MEM_WRITE == pe.IMAGE_SCN_MEM_WRITE {
+			InsertAnomalySection("La sezione degli Imports presenta la flag per la scrittura", 40)
+		}
+		return
+	}
+
+	// Se per un qualche motivo esiste una flag CODE ma non execute, errore
+	checkCode := false
+	if flags&pe.IMAGE_SCN_MEM_EXECUTE == pe.IMAGE_SCN_MEM_EXECUTE {
+		checkCode = true
+		if flags&pe.IMAGE_SECTIONFLAGS_CNT_CODE == pe.IMAGE_SECTIONFLAGS_CNT_CODE {
+			checkCode = false
+		}
+	}
+	if checkCode {
+		InsertAnomalySection("La sezione "+name+" presenta la flag EXECUTE ma non CODE", 20)
+	}
+
 }
 
 func checkSectionName(name string, isElf bool) {

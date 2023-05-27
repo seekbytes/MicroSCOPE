@@ -4,7 +4,7 @@ import "go.mozilla.org/pkcs7"
 
 // TODO: Spiega i vari campi
 
-//PEBINARY: Struttura che contiene tutti i campi del file PE analizzato
+// PEBINARY : Struttura che contiene tutti i campi del file PE analizzato
 type PEBINARY struct {
 	DosHeader        *DosHeaderT
 	COFFHeader       COFFHeaderT
@@ -21,6 +21,7 @@ type PEBINARY struct {
 	DebugSections    []DebugDirectory
 	RichHeader       RichHeader
 	SecuritySection  []SecurityHeader
+	Instructions     []string
 }
 
 // DosHeaderT (lasciata per motivi di retro compatibilità legacy per tutti i file PE)
@@ -141,7 +142,7 @@ type SectionHeader struct {
 	Characteristics      uint32 // Un insieme di bit che mostra le caratteristiche della SectionHeader
 }
 
-// Sezione
+// Section: sezione del file PE
 type Section struct {
 	Name                 string
 	Entropy              float64
@@ -199,6 +200,7 @@ type ImportInfo struct {
 	APICalled string
 	Offset    uint32
 	Ordinal   uint16
+	Thunk     uint32
 }
 
 // Resource
@@ -249,7 +251,7 @@ type CompID struct {
 	Raw     uint32 // La struttura raw
 }
 
-// RichHeader:
+// RichHeader: composto da una chiave in XOR, una serie di CompID che identificano il tipo di compilatore se possibile
 type RichHeader struct {
 	XORKey  uint32
 	CompIDs []CompID

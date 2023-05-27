@@ -543,6 +543,7 @@
                 <td>SizeOfRawData</td>
                 <td>Characteristics</td>
                 <td>Entropy</td>
+                <td>Flags</td>
             </tr>
             </thead>
             {{ range .PEInterface.Sections }}
@@ -553,6 +554,7 @@
                 <td>{{.SizeOfRawData}} bytes</td>
                 <td>{{.Characteristics}}</td>
                 <td>{{.Entropy}}</td>
+                <td><pre>{{.Characteristics | PEprintSectionFlags}}</pre> </td>
             </tr>
             {{ end }}
         </table>
@@ -625,7 +627,7 @@
     {{ range .PEInterface.Resource }}
     <details>
         <summary>
-            {{.Name}} raw content
+            {{.Name}} raw content {{if .ContentType}} ({{.}}) {{ end }}
         </summary>
         {{ if eq .Type 24 }}
             {{ printf "%s" .Content}}

@@ -1,3 +1,10 @@
+Versione 0.0.3-alpha:
+- Migliorata euristica sulle flag delle sezioni
+- Risolto problema con offset delle risorse, se presenti in sezioni diverse
+- Aggiunta stampa sulle flag delle sezioni
+- Risolto problema sulla verifica della trust chain per la sezione Security
+- Aggiunti certificati di root Microsoft (2010 e 2017)
+
 Versione 0.0.2-alpha:
 - Risolti fix
 - Aggiunte euristiche sul nome della sezione

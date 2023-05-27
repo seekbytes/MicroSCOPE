@@ -101,7 +101,10 @@ func parseSections32(endianness binary.ByteOrder, shnum uint16, table uint16) []
 				fmt.Println(err.Error())
 			}
 			buffer := make([]byte, headers[i].Size)
-			binary.Read(reader, endianness, &buffer)
+			err = binary.Read(reader, endianness, &buffer)
+			if err != nil {
+				fmt.Println("errore durante la lettura della sezione ")
+			}
 			tmp.Raw = buffer
 			tmp.Entropy = utils.CalculateEntropy(tmp.Raw)
 		} else {

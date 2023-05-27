@@ -38,6 +38,7 @@ var magicTable = map[string]string{
 	"GIF87a":                              "image/gif",
 	"GIF89a":                              "image/gif",
 	"\x00\x00\x01\x00":                    "image/ico",
+	"\x4d\x4d\x00\x21":                    "image/tiff",
 	"MThd":                                "sound/midi",
 	"FORM":                                "sound/AIFF",
 	"RIFF":                                "sound/wav",
@@ -58,6 +59,11 @@ var magicTable = map[string]string{
 	"KWAJ":                                "file/compressedWin3",
 	"SZDD":                                "file/compressedWin9x",
 	"PMOCCMOC":                            "win/settings",
+	"\x53\x51\x4c\x69":                    "db/sqlite",
+	"\x69\x63\x6e\x73":                    "image/icns",
+	"\x50\x33\x0a":                        "image/ppa", // portable pixmap ascii
+	"\x50\x35\x0a":                        "image/ppa", // portable graymap ascii
+
 }
 
 func IdentifyFile(b []byte) string {

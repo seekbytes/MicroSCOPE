@@ -24,7 +24,7 @@ type COFFTable struct {
 	StringTableO      map[uint32]string // Associa l'offset del simbolo al nome del simbolo
 }
 
-func ReadSymbolTable() {
+func readSymbolTable() {
 
 	// Puntatore alla tabella dei simboli
 	symbolTablePointer := fileAnalyzed.COFFHeader.PointerToSymbolTable
